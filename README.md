@@ -19,9 +19,9 @@ AoE2 is my reference point, and we shall take a minuscule subset of rules from i
         c. Gold (G), 800 per tile
 
 ## Units:
-        a. Villager: v
-        Cost 50F, 25 HP, Training time 25s, 2 attack, speed 0.8 tile/second.
-        Can build buildings.
+    a. Villager: v
+    Cost 50F, 25 HP, Training time 25s, 2 attack, speed 0.8 tile/second.
+    Can build buildings.
 
     The nominal building time t of a building given below is the time required for one Villager to construct a building alone.
 
