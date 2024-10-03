@@ -9,6 +9,7 @@ LARGEUR_PAGE = 900
 pygame.init()
 surface = pygame.display.set_mode((LARGEUR_PAGE, HAUTEUR_PAGE))
 
+# Définitions des fonctions
 def ChoisirDifficulte(value, difficulty):
     # Do the job here !
     pass
@@ -25,8 +26,9 @@ def ParametreDeJeu():
     # Paramètrages de la partie
     pass
 
+# Définitions des différents menus
 menu = pygame_menu.Menu('Welcome', LARGEUR_PAGE, HAUTEUR_PAGE,
-                       theme=pygame_menu.themes.THEME_BLUE)
+                       theme=pygame_menu.themes.THEME_DARK)
 
 parametre_menu = pygame_menu.Menu('Paramètres', LARGEUR_PAGE, HAUTEUR_PAGE,
                                   theme=pygame_menu.themes.THEME_DARK)
@@ -37,6 +39,8 @@ menu.add.button('Paramètres', parametre_menu)
 menu.add.button('Quitter', pygame_menu.events.EXIT)
 
 parametre_menu.add.selector('Nombres de Joueurs : ', [('1', 1), ('2', 2)], onchange=ChoisirNbrBots)
-parametre_menu.add.selector('Difficulty : ', [('Hard', 1), ('Easy', 2)], onchange=ChoisirDifficulte)
+parametre_menu.add.selector('Difficulté des Bots : ', [('Hard', 1), ('Easy', 2)], onchange=ChoisirDifficulte)
+parametre_menu.add.selector('Stratégie des Bots : ', [('Aggressif', 1), ('Défenseur', 2)])
 
+# Lancement de la fenêtre
 menu.mainloop(surface)
