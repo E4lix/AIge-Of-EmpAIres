@@ -1,29 +1,38 @@
 # Menu de "AIge of EmpAIres" en Interface Shell
-# Ce programme va permettre d'avoir un menu sur l'interface Terminal pour sélectionner les différents paramètres qui
-# composent notre jeu. Les élements seront le Lancement d'une partie, la Sélection des Bots, les Paramètres de jeu et
-# enfin l'option Quitter le jeu
+# Ce programme va permettre d'avoir un menu sur l'interface Terminal pour sélectionner les différents 
+# paramètres qui composent notre jeu. Les élements seront le Lancement d'une partie, 
+# la Sélection des Bots, les Paramètres de jeu et enfin l'option Quitter le jeu
 
 # Importations des Librairies
 
 # Définitions des fonctions
 def LancerUnePartie():
     # Protocole de la partie
-    return 1
+    print("Lancement de la partie ...")
+    pass
 
 
 def SelectionDesBots():
-    return 1
+    # Protocole de sélection des bots
+    print("Sélection des bots...")
+    pass
 
 
 def ParametresDeJeu():
     def textParametres():
         print("Menu des Paramètres \n")
         print("Veuillez Sélectionner le paramètre à modifier : \n")
-        print("1 - Taille de la map \n2 - Richesse des Ressources \n3 - Menu Principal")
+        print("1 - Taille de la map \n2 - Richesse des Ressources \n3 - Retour vers le menu")
 
     textParametres()
-    Choix = int(input("Votre choix : "))
-    while Choix != '':
+    
+    while True:
+        try:
+            Choix = int(input("Votre choix : "))
+        except ValueError:
+            print("Entrée invalide, veuillez entrer un nombre.")
+            continue
+
         if Choix == 1:
             n = int(input("Hauteur de la map : "))
             while n<120:
@@ -45,7 +54,7 @@ def ParametresDeJeu():
             Choix = int(input("Nouveau Choix : "))
 
         if Choix == 3:
-            return Richesse
+            break
         
 
 def menu():
@@ -55,10 +64,13 @@ def menu():
 
     textMenuPrincipal()
 
-    # Choix de l'utilisateur
-    Choix = int(input("Veuillez sélectionner une option : "))
+    while True:
+        try:
+            Choix = int(input("Veuillez sélectionner une option : "))
+        except ValueError:
+            print("Entrée invalide, veuillez entrer un nombre.")
+            continue
 
-    while Choix != '':
         if Choix == 1:
             print("Choix 1 - Lancer une partie")
             LancerUnePartie()
@@ -71,12 +83,12 @@ def menu():
             Choix = int(input("Nouveau Choix : "))
         if Choix == 3:
             print("Choix 3 - Paramètres du Jeu")
-            Richesse = ParametresDeJeu()
+            ParametresDeJeu()
             textMenuPrincipal()
             Choix = int(input("Nouveau Choix : "))
         if Choix == 4:
             print("Fin du Jeu, Merci d'avoir joué \n")
-            return 1
+            break
         else:
             Choix = int(input("Veuillez entrer un choix valide : "))
 
