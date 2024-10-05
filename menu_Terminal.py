@@ -46,8 +46,8 @@ def ParametresDeJeu():
             print("Mean - 2000 (F, W, G), 1 centre-ville, 3 villageois.")
             print("Marines - 20000 (F, W, G), 3 centres-villes, 15 villageois, 2 casernes/écuries/stands de tir.")
             Richesse = input("Choix de la richesse de la map : ")
-            ListeChoix = ["Lean","Mean","Marines"]
-            while Richesse not in ListeChoix:
+            ListeChoix = ["lean","mean","marines"]
+            while Richesse.lower() not in ListeChoix:
                 Richesse = input("Choix Invalide, Nouveau Choix : ")
 
             textParametres()
