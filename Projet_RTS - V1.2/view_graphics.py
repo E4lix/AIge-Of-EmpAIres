@@ -1,65 +1,65 @@
-import pygame
+import pygame #get.pressed quit
 import sys
 import time
 from model import Map, Unit, Building
 
-# Constants for the game
-tile_size = 40
-screen_width = 1600
+# Dimensions
+tile_size = 40 # tuiles 
+screen_width = 1600 
 screen_height = 900
 
 # Initialize PyGame
 pygame.init()
 screen = pygame.display.set_mode((screen_width, screen_height))
-pygame.display.set_caption("RTS Game")
+pygame.display.set_caption("AIge of EmpAIres")
 
-# Load images for the game
+# Importation des sprites depuis le dossier 'images'
 def load_images():
     wood_img = pygame.image.load('images/wood.png').convert_alpha()
     gold_img = pygame.image.load('images/gold.png').convert_alpha()
     town_center_img = pygame.image.load('images/town_center.png').convert_alpha()
     villager_img = pygame.image.load('images/villager.png').convert_alpha()
-    farm_img = pygame.image.load('images/farm.png').convert_alpha()  # Load farm image
-    grass_img = pygame.image.load('images/grass.png').convert_alpha()  # Load grass image
+    farm_img = pygame.image.load('images/farm.png').convert_alpha()  
+    grass_img = pygame.image.load('images/grass.png').convert_alpha() 
 
-    # Resize images to match the tile size
+    # redimensionnement
     wood_img = pygame.transform.scale(wood_img, (tile_size, tile_size))
     gold_img = pygame.transform.scale(gold_img, (tile_size, tile_size))
     town_center_img = pygame.transform.scale(town_center_img, (tile_size, tile_size))
     villager_img = pygame.transform.scale(villager_img, (tile_size, tile_size))
-    farm_img = pygame.transform.scale(farm_img, (tile_size, tile_size))  # Resize farm image
-    grass_img = pygame.transform.scale(grass_img, (tile_size, tile_size))  # Resize grass image
+    farm_img = pygame.transform.scale(farm_img, (tile_size, tile_size))  
+    grass_img = pygame.transform.scale(grass_img, (tile_size, tile_size)) 
 
     return {
         'Wood': wood_img,
         'Gold': gold_img,
         'Town Center': town_center_img,
         'Villager': villager_img,
-        'Farm': farm_img,  # Include farm image in the dictionary
+        'Farm': farm_img, 
         'Grass': grass_img
     }
 
-# Render the game map on the screen
+# Afficher la map à l'écran (il y a surement de l'optimisation à faire par ici car à mon avis on calcul toutes les tuiles alors qu'on en voit qu'une partie)
 def render_map(screen, game_map, units, buildings, view_x, view_y, max_width, max_height):
-    screen.fill((0, 0, 0))  # Clear screen with black color
+    screen.fill((0, 0, 0))  # Ecran noir
     images = load_images()
 
-    # Render visible portion of the map
+    # Affiche seulement une portion de la carte, c'est notre vu du jeu 
     for y in range(view_y, min(view_y + max_height, game_map.height)):
         for x in range(view_x, min(view_x + max_width, game_map.width)):
             tile = game_map.grid[y][x]
             tile_pos = (x - view_x) * tile_size, (y - view_y) * tile_size  # Adjust position based on view
 
-            # Display grass for empty tiles
+            # Cases vide
             screen.blit(images['Grass'], tile_pos)
 
-            # Display resources
+            # Cases ressources
             if tile.resource == 'Wood':
                 screen.blit(images['Wood'], tile_pos)
             elif tile.resource == 'Gold':
                 screen.blit(images['Gold'], tile_pos)
 
-            # Display buildings
+            # batiments
             if tile.building:
                 if tile.building.building_type == 'Town Center':
                     screen.blit(images['Town Center'], tile_pos)
@@ -69,15 +69,15 @@ def render_map(screen, game_map, units, buildings, view_x, view_y, max_width, ma
                     # Add more buildings here, for example, barracks if needed
                     pass
 
-    # Render units
+    # Rendu unités
     for unit in units:
-        if view_x <= unit.x < view_x + max_width and view_y <= unit.y < view_y + max_height:
+        if view_x <= unit.x < view_x + max_width and view_y <= unit.y < view_y + max_height: # l'unité est t-elle présente dans notre vu du jeu?
             unit_pos = (unit.x - view_x) * tile_size, (unit.y - view_y) * tile_size
             screen.blit(images['Villager'], unit_pos)
 
     pygame.display.flip()  # Update the screen
 
-# Handle user input for scrolling the map
+# Bouger la map
 def handle_input_pygame(view_x, view_y, max_width, max_height, game_map):
     """Gère les touches ZQSD pour le scrolling en mode Pygame."""
     keys = pygame.key.get_pressed()
@@ -98,58 +98,3 @@ def handle_input_pygame(view_x, view_y, max_width, max_height, game_map):
     return view_x, view_y
 
 
-# Main game loop for graphical mode
-def game_loop(units, buildings, game_map, ai, delay=0.1):
-    running = True
-    clock = pygame.time.Clock()
-    view_x, view_y = 0, 0  # Start with the camera at the top-left
-    max_width = screen_width // tile_size
-    max_height = screen_height // tile_size
-    last_update_time = time.time()
-
-    while running:
-        current_time = time.time()
-
-        # Event handling (closing the game)
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-
-        # Scroll the map using ZQSD
-        view_x, view_y = handle_input_pygame(view_x, view_y, max_width, max_height, game_map)
-
-        # Update units every 'delay' seconds
-        if current_time - last_update_time > delay:
-            for unit in units:
-                if unit.returning_to_town_center:
-                    path = unit.find_nearest_town_center(game_map, buildings)
-                    if path:
-                        next_step = path.pop(0)
-                        unit.move(*next_step)
-                        if (unit.x, unit.y) == (buildings[0].x, buildings[0].y):
-                            unit.deposit_resource(buildings[0])
-                else:
-                    path = unit.find_nearest_wood(game_map)
-                    if path:
-                        next_step = path.pop(0)
-                        unit.move(*next_step)
-                        unit.gather_resource(game_map)
-
-            # Let AI manage population and buildings
-            ai.update_population()
-            ai.build(game_map)
-
-            last_update_time = current_time
-
-        # Render the map and units
-        render_map(screen, game_map, units, buildings, view_x, view_y, max_width, max_height)
-
-        # Handle quitting or switching modes
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_F12]:  # Switch back to terminal mode
-            pygame.quit()
-            sys.exit()  # Exits graphical mode
-
-        clock.tick(30)  # Limit to 30 FPS
-
-    pygame.quit()
