@@ -6,19 +6,19 @@
 # Importations des Librairies
 
 # Définitions des fonctions
-def LancerUnePartie():
+def LancerUnePartie(Richesse : str) -> None:
     # Protocole de la partie
     print("Lancement de la partie ...")
     pass
 
 
-def SelectionDesBots():
+def SelectionDesBots() -> None:
     # Protocole de sélection des bots
     print("Sélection des bots...")
     pass
 
-
-def ParametresDeJeu():
+# Par défaut, paramètres renvoie les valeurs par défauts
+def ParametresDeJeu(Richesse: str, TailleMap: int) -> tuple[str, int] :
     def textParametres():
         print("Menu des Paramètres \n")
         print("Veuillez Sélectionner le paramètre à modifier : \n")
@@ -54,16 +54,20 @@ def ParametresDeJeu():
             Choix = int(input("Nouveau Choix : "))
 
         if Choix == 3:
-            break
+            return Richesse, TailleMap
         
-
-def menu():
+def menu() -> None:
     def textMenuPrincipal():
         print("Menu Principal \n")
         print("1 - Lancer une partie \n2 - Sélection des Bots \n3 - Paramètres de jeu \n4 - Quitter le jeu \n")
 
     textMenuPrincipal()
 
+    # Valeurs par défauts
+    Richesse = 'Lean'
+    TailleMap = 120
+
+    # Boucle du jeu
     while True:
         try:
             Choix = int(input("Veuillez sélectionner une option : "))
@@ -73,24 +77,25 @@ def menu():
 
         if Choix == 1:
             print("Choix 1 - Lancer une partie")
-            LancerUnePartie()
+            LancerUnePartie(Richesse, TailleMap)
             textMenuPrincipal()
             Choix = int(input("Nouveau Choix : "))
+
         if Choix == 2:
             print("Choix 2 - Sélection des Bots")
             SelectionDesBots()
             textMenuPrincipal()
             Choix = int(input("Nouveau Choix : "))
+
         if Choix == 3:
             print("Choix 3 - Paramètres du Jeu")
-            ParametresDeJeu()
+            [Richesse, TailleMap] = ParametresDeJeu(Richesse, TailleMap)
             textMenuPrincipal()
             Choix = int(input("Nouveau Choix : "))
+
         if Choix == 4:
             print("Fin du Jeu, Merci d'avoir joué \n")
             break
-        else:
-            Choix = int(input("Veuillez entrer un choix valide : "))
 
 
 # Programme Principal
