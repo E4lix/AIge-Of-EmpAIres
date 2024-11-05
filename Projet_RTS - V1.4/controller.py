@@ -348,12 +348,8 @@ def game_loop_curses(stdscr):
 def game_loop_graphics():
     global units, buildings, game_map, ai
 
-    # Assurez-vous que screen est initialisé correctement comme surface Pygame
-    screen = initialize_graphics()  # initialize_graphics() doit retourner une surface pygame.Surface valide
-
-    # Vérification pour être sûr que 'screen' est bien de type pygame.Surface
-    if not isinstance(screen, pygame.Surface):
-        raise TypeError(f"Expected screen to be a pygame.Surface, but got {type(screen)}")
+    # Initialiser pygame pour le mode graphique
+    screen = initialize_graphics()
 
     running = True
     clock = pygame.time.Clock()
