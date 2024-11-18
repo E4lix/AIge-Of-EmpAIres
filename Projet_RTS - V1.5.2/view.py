@@ -11,7 +11,7 @@ def init_colors():
     curses.init_pair(6, curses.COLOR_MAGENTA, curses.COLOR_BLACK)  # Magenta pour les fermes
     curses.init_pair(7, curses.COLOR_BLUE, curses.COLOR_BLACK)  # Bleu pour d'autres bâtiments (ex: Casernes)
 
-def display_with_curses(stdscr, game_map, units, buildings, joueur, view_x, view_y, max_height, max_width):
+def display_with_curses(stdscr, game_map, units, buildings, ai, view_x, view_y, max_height, max_width):
     stdscr.clear()  # Efface l'écran pour éviter les résidus
     unit_positions = {(unit.x, unit.y): unit.unit_type[0] for unit in units}  # 'V' pour villageois
 
@@ -38,9 +38,9 @@ def display_with_curses(stdscr, game_map, units, buildings, joueur, view_x, view
     # Afficher les ressources dans le Town Center
     if buildings:
         town_center = buildings[0]  # Supposons qu'il n'y a qu'un Town Center
-        resources_info = (f"Bois: {joueur.resources['Wood']} Or: {joueur.resources['Gold']} "
-                          f"Nourriture: {joueur.resources['Food']} "
-                          f"Population: {joueur.population}/{joueur.population_max}")
+        resources_info = (f"Bois: {ai.resources['Wood']} Or: {ai.resources['Gold']} "
+                          f"Nourriture: {ai.resources['Food']} "
+                          f"Population: {ai.population}/{ai.population_max}")
         stdscr.addstr(0, 0, resources_info)  # Affiche les ressources en haut de l'écran
 
     stdscr.refresh()

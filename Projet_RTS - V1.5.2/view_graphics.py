@@ -30,7 +30,7 @@ def initialize_graphics():
     
     return screen
 
-def render_map(screen, game_map, units, buildings, joueur, view_x, view_y, max_width, max_height):
+def render_map(screen, game_map, units, buildings, ai, view_x, view_y, max_width, max_height):
     if not isinstance(screen, pygame.Surface):
         raise TypeError(f"Expected screen to be a pygame.Surface, but got {type(screen)}")
 
@@ -68,11 +68,11 @@ def render_map(screen, game_map, units, buildings, joueur, view_x, view_y, max_w
         if unit.unit_type == 'Villager':
             screen.blit(images['villager'], (screen_x, screen_y - TILE_HEIGHT // 2))  # Décalage pour l'unité
 
-    # Afficher les ressources du joueur en haut de l'écran
+    # Afficher les ressources du ai en haut de l'écran
     font = pygame.font.Font(None, 36)
-    resources_info = (f"Bois: {joueur.resources['Wood']} Or: {joueur.resources['Gold']} "
-                      f"Nourriture: {joueur.resources['Food']} "
-                      f"Population: {joueur.population}/{joueur.population_max}")
+    resources_info = (f"Bois: {ai.resources['Wood']} Or: {ai.resources['Gold']} "
+                      f"Nourriture: {ai.resources['Food']} "
+                      f"Population: {ai.population}/{ai.population_max}")
     resources_text = font.render(resources_info, True, (255, 255, 255))
     screen.blit(resources_text, (20, 20))
 

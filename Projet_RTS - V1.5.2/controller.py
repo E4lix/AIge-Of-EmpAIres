@@ -4,7 +4,7 @@ import os
 import pygame
 import sys
 import signal
-from model import Map, Unit, Building, Joueur
+from model import Map, Unit, Building
 from view import display_with_curses, handle_input, init_colors
 from view_graphics import handle_input_pygame, render_map, screen_width, screen_height, TILE_WIDTH, TILE_HEIGHT, initialize_graphics
 from game_utils import save_game_state, load_game_state
@@ -27,14 +27,14 @@ SAVE_DIR = "saves"
 DEFAULT_SAVE = os.path.join(SAVE_DIR, "default_game.pkl")
 
 # Global Variables
-units, buildings, game_map, ai, joueur = None, None, None, None, None
+units, buildings, game_map, ai, ai = None, None, None, None, None
 
 def list_saves():
     saves = [f for f in os.listdir(SAVE_DIR) if f.endswith(".pkl")]
     return saves
 
 def load_existing_game(filename):
-    global units, buildings, game_map, ai, joueur
+    global units, buildings, game_map, ai, ai
     loaded_units, loaded_buildings, loaded_map, loaded_ai = load_game_state(filename)
     if loaded_units and loaded_buildings and loaded_map and loaded_ai:
         units, buildings, game_map, ai = loaded_units, loaded_buildings, loaded_map, loaded_ai
@@ -155,19 +155,25 @@ def switch_mode(new_mode):
 def update_game(units, buildings, game_map, ai, strategy, delay, last_update_time):
     """
     Met à jour le jeu en utilisant la stratégie spécifiée pour les actions IA.
+
+    Args:
+        units (list): Liste des unités du jeu.
+        buildings (list): Liste des bâtiments du jeu.
+        game_map (Map): Carte du jeu.
+        ai (AI): L'objet représentant l'IA du ai.
+        strategy (AIStrategy): Stratégie actuellement utilisée pour l'IA.
+        delay (float): Délai minimum entre les mises à jour.
+        last_update_time (float): Temps de la dernière mise à jour.
+    
+    Returns:
+        float: Temps de la dernière mise à jour (actualisé si nécessaire).
     """
     current_time = time.time()
     if current_time - last_update_time > delay:
         # Utiliser la stratégie actuelle pour gérer les actions de l'IA
-        for unit in units:
-            # Si l'unité est déjà occupée, on ne l'actualise pas
-            if unit.current_action in ['moving_to_farm', 'gathering_food', 'returning']:
-                continue
-            # Sinon, exécuter la stratégie pour cette unité
-            strategy.execute([unit], buildings, game_map, ai)
+        strategy.execute(units, buildings, game_map, ai)
         return current_time
     return last_update_time
-
 
 def escape_menu_curses(stdscr):
     options = ["1. Sauvegarder", "2. Charger", "3. Reprendre", "4. Retour au Menu Principal", "5. Quitter"]
@@ -330,7 +336,7 @@ def game_loop_curses(stdscr):
 
         # Gère les entrées utilisateur et affiche la carte en curses
         view_x, view_y = handle_input(stdscr, view_x, view_y, max_height, max_width, game_map)
-        display_with_curses(stdscr, game_map, units, buildings, joueur, view_x, view_y, max_height, max_width)
+        display_with_curses(stdscr, game_map, units, buildings, ai, view_x, view_y, max_height, max_width)
         last_update_time = update_game(units, buildings, game_map, ai, strategy=current_strategy, delay=0.01, last_update_time=last_update_time)
 
         key = stdscr.getch()
@@ -365,7 +371,7 @@ def game_loop_graphics():
         last_update_time = update_game(units, buildings, game_map, ai, strategy=current_strategy, delay=0.01, last_update_time=last_update_time)
 
         # Rendu de la carte et des unités
-        render_map(screen, game_map, units, buildings, joueur, view_x, view_y, max_width, max_height)
+        render_map(screen, game_map, units, buildings, ai, view_x, view_y, max_width, max_height)
 
 
         # Gérer les événements Pygame (fermeture de fenêtre, bascule de mode, menu)
@@ -452,8 +458,7 @@ def start_new_game_curses(stdscr):
                 break
             elif key in [curses.KEY_BACKSPACE, 127]:  # Touche Backspace
                 value = value[:-1]
-                # Efface la ligne précédente et réaffiche la saisie actuelle
-                stdscr.addstr(idx + 1, len(prompt), " " * (len(value) + 10))
+                stdscr.addstr(idx + 1, len(prompt), " " * (len(value) + 10))  # Efface la ligne précédente
                 stdscr.addstr(idx + 1, len(prompt), value)
                 stdscr.move(idx + 1, len(prompt) + len(value))
             elif 32 <= key <= 126:  # Caractères imprimables uniquement
@@ -479,22 +484,30 @@ def start_new_game_curses(stdscr):
         speed = 1.0
 
     # Initialisation de la nouvelle partie
-    global units, buildings, game_map, ai, joueur
-    game_map = Map(120, 120)
-    game_map.generate_forest_clusters(num_clusters=10, cluster_size=40)
-    game_map.generate_gold_clusters(num_clusters=4)
+    global units, buildings, game_map, ai
+    game_map = Map(map_size, map_size)
+    game_map.generate_forest_clusters(num_clusters=wood_clusters, cluster_size=40)
+    game_map.generate_gold_clusters(num_clusters=gold_clusters)
     town_center = Building('Town Center', 10, 10)
     game_map.place_building(town_center, 10, 10)
-    joueur = Joueur()  # Initialisation de l'objet Joueur
-    villager = Unit('Villager', 9, 9, joueur)
-    villager2 = Unit('Villager', 12, 9, joueur)
-    villager3 = Unit('Villager', 9, 12, joueur)
-    units = [villager, villager2, villager3]
+    
+    # Création des unités avant l'IA
+    villager1 = Unit('Villager', 9, 9, None)  # Créez l'unité sans AI pour l'instant
+    villager2 = Unit('Villager', 12, 9, None)
+    villager3 = Unit('Villager', 9, 12, None)
+    units = [villager1, villager2, villager3]
     buildings = [town_center]
-    ai = AI(joueur, buildings, units)  # Passage de l'objet Joueur à l'IA
+
+    # Créez l'instance de l'AI après avoir créé les unités
+    ai = AI(buildings, units)
+
+    # Mettre à jour les unités avec l'instance correcte de l'IA
+    for unit in units:
+        unit.ai = ai
 
     # Lancer la boucle de jeu avec curses
     curses.wrapper(game_loop_curses)
+
 
 def main_menu_graphics():
     pygame.init()
@@ -611,19 +624,19 @@ def start_new_game_graphics(screen, font):
         speed = 1.0
 
     # Initialisation de la nouvelle partie
-    global units, buildings, game_map, ai, joueur
+    global units, buildings, game_map, ai, ai
     game_map = Map(120, 120)
     game_map.generate_forest_clusters(num_clusters=10, cluster_size=40)
     game_map.generate_gold_clusters(num_clusters=4)
     town_center = Building('Town Center', 10, 10)
     game_map.place_building(town_center, 10, 10)
-    joueur = Joueur()  # Initialisation de l'objet Joueur
-    villager = Unit('Villager', 9, 9, joueur)
-    villager2 = Unit('Villager', 12, 9, joueur)
-    villager3 = Unit('Villager', 9, 12, joueur)
+    ai = AI(buildings, units)  # Initialisation de l'objet AI
+    villager = Unit('Villager', 9, 9, ai)
+    villager2 = Unit('Villager', 12, 9, ai)
+    villager3 = Unit('Villager', 9, 12, ai)
     units = [villager, villager2, villager3]
     buildings = [town_center]
-    ai = AI(joueur, buildings, units)  # Passage de l'objet Joueur à l'IA
+    ai = AI(ai, buildings, units)  # Passage de l'objet ai à l'IA
 
     # Lancer la boucle de jeu graphique
     game_loop_graphics()
@@ -635,7 +648,7 @@ def render_text(screen, font, text, position, color=(255, 255, 255)):
 
 
 def init_game():
-    global units, buildings, game_map, ai, joueur
+    global units, buildings, game_map, ai, ai
     os.makedirs(SAVE_DIR, exist_ok=True)
     loaded_units, loaded_buildings, loaded_map, loaded_ai = load_game_state(DEFAULT_SAVE)
     if loaded_units and loaded_buildings and loaded_map and loaded_ai:
@@ -646,13 +659,13 @@ def init_game():
         game_map.generate_gold_clusters(num_clusters=4)
         town_center = Building('Town Center', 10, 10)
         game_map.place_building(town_center, 10, 10)
-        joueur = Joueur()  # Initialisation de l'objet Joueur
-        villager = Unit('Villager', 9, 9, joueur)
-        villager2 = Unit('Villager', 12, 9, joueur)
-        villager3 = Unit('Villager', 9, 12, joueur)
+        ai = AI(buildings, units)  # Initialisation de l'objet AI
+        villager = Unit('Villager', 9, 9, ai)
+        villager2 = Unit('Villager', 12, 9, ai)
+        villager3 = Unit('Villager', 9, 12, ai)
         units = [villager, villager2, villager3]
         buildings = [town_center]
-        ai = AI(joueur, buildings, units)  # Passage de l'objet Joueur à l'IA
+        ai = AI(ai, buildings, units)  # Passage de l'objet ai à l'IA
 
 def main():
     # Ne pas initialiser pygame à moins que le mode graphique soit spécifié
