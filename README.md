@@ -75,3 +75,19 @@ AoE2 is my reference point, and we shall take a minuscule subset of rules from i
 
     c. Marines: 20000(F,W,G)
     3 Town Centres, 15 Villagers, 2 (Barracks, Stable, Archery Range)
+
+# 2 - Partie Graphique
+## Fonctionnement par TileMap
+
+    Une tilemap est une structure de données utilisée pour représenter un monde 
+    de jeu à l’aide de tuiles (tiles), généralement des images carrées ou 
+    rectangulaires qui sont disposées sur une grille. Chaque tuile représente une 
+    portion du monde (par exemple, un sol, un mur, ou un arbre), et l’ensemble des 
+    tuiles constitue le terrain du jeu.
+
+    Le principe de la tilemap repose sur une grille bidimensionnelle, où chaque 
+    cellule de la grille contient un identifiant de tuile qui indique quelle 
+    image (ou quel modèle) doit être affichée à cette position. Cela permet de  
+    créer des environnements complexes de manière efficace, car chaque tuile 
+    peut être réutilisée plusieurs fois, réduisant ainsi les ressources nécessaires 
+    pour stocker le monde du jeu.
