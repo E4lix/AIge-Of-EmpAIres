@@ -5,16 +5,20 @@ class EconomicAI(BaseAI):
     
     def update_population(self):
         # Logique pour maximiser la population tout en conservant les ressources
-        print("Economic AI: Maintenir une croissance modérée de la population.")
+        #print("Economic AI: Maintenir une croissance modérée de la population.")
+        pass
 
     def build(self):
         # Construire des bâtiments économiques en priorité
-        print("Economic AI: Construire des centres de stockage et des fermes.")
+        #print("Economic AI: Construire des centres de stockage et des fermes.")
+        pass
 
     def harvest(self):
         # Maximiser la récolte de ressources pour la construction et le développement
-        print("Economic AI: Récolte prioritaire pour accumuler des ressources.")
+        #print("Economic AI: Récolte prioritaire pour accumuler des ressources.")
+        pass
 
     def attack(self):
         # Stratégie défensive, ne pas attaquer sauf si attaqué
-        print("Economic AI: Ne pas attaquer. Se défendre uniquement.")
+        #print("Economic AI: Ne pas attaquer. Se défendre uniquement.")
+        pass
