@@ -19,9 +19,6 @@ current_strategy = StrategieNo1()
 # Utilisation de la stratégie dans update_game
 last_update_time = 0  # Initialiser last_update_time avant la boucle principale du jeu
 
-
-
-
 # Constants
 SAVE_DIR = "saves"
 DEFAULT_SAVE = os.path.join(SAVE_DIR, "default_game.pkl")
@@ -38,9 +35,10 @@ def load_existing_game(filename):
     loaded_units, loaded_buildings, loaded_map, loaded_ai = load_game_state(filename)
     if loaded_units and loaded_buildings and loaded_map and loaded_ai:
         units, buildings, game_map, ai = loaded_units, loaded_buildings, loaded_map, loaded_ai
-        print(f"[INFO] Chargé : {filename}")
+        #print(f"[INFO] Chargé : {filename}")
     else:
-        print("[ERROR] Chargement échoué. Le fichier est corrompu ou n'existe pas.")
+        pass
+        #print("[ERROR] Chargement échoué. Le fichier est corrompu ou n'existe pas.")
 
 def load_existing_game_curses(stdscr):
     saves = list_saves()
@@ -106,6 +104,7 @@ def load_existing_game_graphics(screen, font):
                     game_loop_graphics()
                     return  # Quitte la fonction après avoir lancé la boucle de jeu
 
+
 def clear_input_buffer(stdscr):
     stdscr.nodelay(True)
     while True:
@@ -115,9 +114,8 @@ def clear_input_buffer(stdscr):
     stdscr.nodelay(False)
 
 
-
 def signal_handler(sig, frame):
-    print("[INFO] Exiting due to CTRL+C")
+    #print("[INFO] Exiting due to CTRL+C")
     curses.endwin()
     sys.exit(0)
 

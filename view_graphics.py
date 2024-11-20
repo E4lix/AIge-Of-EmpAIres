@@ -1,3 +1,5 @@
+import sys
+
 import pygame
 import os
 
@@ -25,7 +27,7 @@ def initialize_graphics():
         images['villager'] = pygame.transform.scale(pygame.image.load("assets/villager.png").convert_alpha(), (TILE_WIDTH // 2, TILE_HEIGHT))  # Adjusted size to be smaller
         images['farm'] = pygame.transform.scale(pygame.image.load("assets/farm.png").convert_alpha(), (TILE_WIDTH * 2, TILE_HEIGHT * 2))  # Nouvelle ligne pour la ferme
     except pygame.error as e:
-        print(f"Erreur de chargement de l'image : {e}")
+        #print(f"Erreur de chargement de l'image : {e}")
         sys.exit(1)
     
     return screen
