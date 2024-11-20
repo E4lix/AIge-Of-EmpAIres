@@ -35,7 +35,8 @@ class Tilemap:
     def __init__(self, tileset, size=(10, 20), rect=None):
         self.size = size
         self.tileset = tileset
-        self.map = np.zeros(size, dtype=int)
+        self.objects = []  # Liste des objets uniques
+        self.map = np.zeros(size, dtype=int) # Carte du terrain de la map
 
         h, w = self.size
         self.image = pygame.Surface((64 * w, 64 * h))
@@ -44,14 +45,8 @@ class Tilemap:
         else:
             self.rect = self.image.get_rect()
 
-        # Liste d'éléments supplémentaires (bâtiments, arbres, etc.)
-        self.elements = []
-
     # Récupérer la position d'une case pour y afficher la bonne tile
     def get_tile_for_position(self, i, j):
-        """
-        Détermine la tuile à afficher en fonction de la position (i, j).
-        """
         # Récupère la taille de la carte
         m, n = self.size
 
@@ -64,7 +59,6 @@ class Tilemap:
             return self.tileset.tiles[2]  # Coin inférieur gauche
         elif i == m - 1 and j == n - 1:
             return self.tileset.tiles[10]  # Coin inférieur droit
-
         # Vérifie si la position (i, j) est sur un bord, mais pas aux coins
         if i == 0:
             return self.tileset.tiles[4]  # Bord supérieur
@@ -74,7 +68,6 @@ class Tilemap:
             return self.tileset.tiles[1]  # Bord gauche
         elif j == n - 1:
             return self.tileset.tiles[9] # Bord droit
-
         # Si c'est une case du centre
         return self.tileset.tiles[5]  # Centre
 
@@ -85,6 +78,9 @@ class Tilemap:
             for j in range(n):
                 tile = self.tileset.tiles[self.map[i, j]]
                 self.image.blit(tile, (j * 64, i * 64))
+        # Rendre les objets uniques
+        for obj in self.objects:
+            self.image.blit(obj.image, obj.position)
 
     # Render une map avec respect des textures de coins et côtés
     def render_normal(self):
@@ -93,6 +89,9 @@ class Tilemap:
             for j in range(n):
                 tile = self.get_tile_for_position(i, j)
                 self.image.blit(tile, (j * 64, i * 64))
+        # Rendre les objets uniques
+        for obj in self.objects:
+            self.image.blit(obj.image, obj.position)
 
     def set_zero(self):
         self.map = np.zeros(self.size, dtype=int)
@@ -106,18 +105,22 @@ class Tilemap:
         self.map = np.random.randint(n, size=self.size)
         self.render()
 
+    def add_object(self, image_path, grid_position):
+        x, y = grid_position
+        pixel_position = (y * 32, x * 32)  # Convertit la position de la grille en pixels
+        game_object = GameObject(image_path, pixel_position)
+        self.objects.append(game_object)
+
+        self.render_normal()
+
     def __str__(self):
         return f'{self.__class__.__name__} {self.size}'
 
-# Class Element
-class Element:
-    def __init__(self, image_file, position):
-        self.image = pygame.image.load(image_file)
-        self.rect = self.image.get_rect(topleft=position)
-
-    def draw(self, surface):
-        surface.blit(self.image, self.rect)
-
+# Class GameObject
+class GameObject:
+    def __init__(self, image_path, position):
+        self.image = pygame.image.load(image_path).convert_alpha()  # Chargement avec transparence
+        self.position = position  # Position en pixels (x, y)
 
 # Classe principale du jeu
 class Game:
@@ -134,7 +137,9 @@ class Game:
 
         # Créer une tilemap
         self.tilemap = Tilemap(self.tileset, size=(15, 20))  # Carte de 15x20
-        self.tilemap.set_mid()  # Générer une carte aléatoire
+
+        # Affiche la tilemap créé
+        self.tilemap.set_mid()
 
     def run(self):
         while self.running:
@@ -146,8 +151,16 @@ class Game:
                         self.tilemap.set_random()
                     elif event.key == pygame.K_z:  # Réinitialiser la carte
                         self.tilemap.set_zero()
-                    elif event.key == pygame.K_m: # Charge une carte avec la tile milieu
+                    elif event.key == pygame.K_m: # Charge une carte normale
                         self.tilemap.set_mid()
+                    elif event.key == pygame.K_l:
+                        self.tilemap.add_object('assets/Tiny_Swords/Factions/Knights/Buildings/House/House_Blue.png',
+                                                (5, 5))
+                        self.tilemap.add_object('assets/Tiny_Swords/Factions/Knights/Buildings/House/House_Blue.png',
+                                                (10, 5))
+
+                        self.tilemap.set_mid()
+
 
             # Dessiner la carte
             self.screen.fill((0, 0, 0))  # Fond noir
