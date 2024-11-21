@@ -63,14 +63,16 @@ class Map:
                         if (new_x, new_y) not in tiles_to_fill and 0 <= new_x < self.width and 0 <= new_y < self.height:
                             tiles_to_fill.add((new_x, new_y))
 
-    def place_building(self, building, x, y):
-        """ Place un bâtiment sur une tuile donnée """
+    def place_building(self, building, x, y, buildings_list=None):
         if 0 <= x < self.width and 0 <= y < self.height:
             self.grid[y][x].building = building
             if building.building_type == 'Farm':
                 self.grid[y][x].resource = 'Food'
-
             print(f"Bâtiment {building.building_type} placé à ({x}, {y})")
+            if buildings_list is not None:
+                buildings_list.append(building)
+
+
 
 
 class Building:
@@ -194,14 +196,24 @@ class Unit:
                 else:
                     self.action_end_time = current_time + 5  # Prochaine récolte
 
-    def deposit_resource(self, building):
-        if building and building.building_type == 'Town Center' and self.current_resource:
-            # Appelle directement AI pour gérer les ressources
-            print(f"{self.unit_type} dépose {self.resource_collected} unités de {self.current_resource} au Town Center.")
-            self.ai.update_resources(self.current_resource, self.resource_collected)
-            self.resource_collected = 0
-            self.returning_to_town_center = False
-            self.current_resource = None
+    def deposit_resource(self):
+        if self.current_resource:
+            # Trouver le Town Center associé à l'IA
+            town_center = self.ai.town_center
+            if (self.x, self.y) == (town_center.x, town_center.y):
+                print(f"{self.unit_type} dépose {self.resource_collected} unités de {self.current_resource} au Town Center de l'IA.")
+                self.ai.update_resources(self.current_resource, self.resource_collected)
+                self.resource_collected = 0
+                self.returning_to_town_center = False
+                self.current_resource = None
+            else:
+                # Se déplacer vers le Town Center
+                print(f"{self.unit_type} retourne au Town Center pour déposer les ressources.")
+                path = self.find_nearest_town_center(self.ai.buildings)
+                if path:
+                    next_step = path[0]
+                    self.move(next_step[0], next_step[1])
+
 
 
     def find_nearest_farm(self, game_map):
@@ -241,19 +253,27 @@ class Unit:
 
 
     def find_nearest_town_center(self, game_map, buildings):
-        """ Recherche du chemin vers le Town Center le plus proche """
-        town_center = buildings[0]
-        # Si le villageois est déjà sur la même tuile que le Town Center
+        """Recherche le chemin vers le Town Center associé à cette IA."""
+        # Recherche le Town Center dans les bâtiments fournis
+        town_center = next((b for b in buildings if b.building_type == 'Town Center'), None)
+        if not town_center:
+            print(f"Aucun Town Center trouvé pour {self.unit_type}.")
+            return None
+
+        # Vérifie si l'unité est déjà au Town Center
         if (self.x, self.y) == (town_center.x, town_center.y):
             print(f"{self.unit_type} est déjà sur le Town Center.")
-            return None  # Pas besoin de trouver un chemin
+            return None  # Pas besoin de chemin
 
+        # Recherche un chemin vers le Town Center
         path = self.find_path(game_map, (self.x, self.y), 'Town Center', town_center)
         if path:
             print(f"Chemin trouvé vers le Town Center : {path}")
         else:
             print(f"Aucun chemin vers le Town Center trouvé pour {self.unit_type} à ({self.x}, {self.y})")
         return path
+
+
 
     def find_path(self, game_map, start, target_type, target_building=None):
         """ Recherche un chemin vers une destination donnée avec déplacements diagonaux """

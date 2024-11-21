@@ -41,22 +41,22 @@ class AI:
 
     # Autres méthodes de la classe AI
 
-    def build(self, game_map):
+    def build(self, game_map, buildings):
         """Méthode pour construire un bâtiment si les ressources sont disponibles."""
-        # Exemple : Construire une ferme si assez de bois et d'or
         cost = {'Wood': 50, 'Gold': 30}
         if self.can_afford(cost):
-            # Trouver une position valide pour construire le bâtiment
             x, y = self.find_valid_build_location(game_map)
             if x is not None and y is not None:
-                # Construire une ferme
                 new_building = Building('Farm', x, y)
-                game_map.place_building(new_building, x, y)
-                self.buildings.append(new_building)
+                game_map.place_building(new_building, x, y, buildings)
+                self.buildings.append(new_building)  # Ajout à la liste locale
+                buildings.append(new_building)      # Ajout à la liste globale
                 self.pay_resources(cost)
                 print(f"Bâtiment {new_building.building_type} construit à ({x}, {y})")
         else:
             print("Pas assez de ressources pour construire.")
+
+
 
 
     def find_valid_build_location(self, game_map):
