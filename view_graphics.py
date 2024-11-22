@@ -30,7 +30,7 @@ def initialize_graphics():
     
     return screen
 
-def render_map(screen, game_map, units, buildings, ai, view_x, view_y, max_width, max_height):
+def render_map(screen, game_map, units, buildings, ais, view_x, view_y, max_width, max_height):
     if not isinstance(screen, pygame.Surface):
         raise TypeError(f"Expected screen to be a pygame.Surface, but got {type(screen)}")
 
@@ -59,7 +59,8 @@ def render_map(screen, game_map, units, buildings, ai, view_x, view_y, max_width
         if building.building_type == 'Town Center':
             screen.blit(images['town_center'], (screen_x, screen_y - TILE_HEIGHT))  # Décalage pour le bâtiment
         elif building.building_type == 'Farm':
-            screen.blit(images['farm'], (screen_x, screen_y - TILE_HEIGHT))  # Ajout pour la ferme
+            screen.blit(images['farm'], (screen_x, screen_y - TILE_HEIGHT))  # Décalage pour la ferme
+
 
     # Render units
     for unit in units:
@@ -68,16 +69,21 @@ def render_map(screen, game_map, units, buildings, ai, view_x, view_y, max_width
         if unit.unit_type == 'Villager':
             screen.blit(images['villager'], (screen_x, screen_y - TILE_HEIGHT // 2))  # Décalage pour l'unité
 
-    # Afficher les ressources du ai en haut de l'écran
+    # Afficher les ressources pour chaque IA en haut de l'écran
     font = pygame.font.Font(None, 36)
-    resources_info = (f"Bois: {ai.resources['Wood']} Or: {ai.resources['Gold']} "
-                      f"Nourriture: {ai.resources['Food']} "
-                      f"Population: {ai.population}/{ai.population_max}")
-    resources_text = font.render(resources_info, True, (255, 255, 255))
-    screen.blit(resources_text, (20, 20))
+    y_offset = 0
+    for idx, ai in enumerate(ais):
+        resources_info = (f"Joueur {idx + 1} - Bois: {ai.resources['Wood']} "
+                          f"Or: {ai.resources['Gold']} "
+                          f"Nourriture: {ai.resources['Food']} "
+                          f"Population: {ai.population}/{ai.population_max}")
+        resources_text = font.render(resources_info, True, (255, 255, 255))
+        screen.blit(resources_text, (20, 20 + y_offset))
+        y_offset += 30
 
     # Update the display
     pygame.display.flip()
+
 
 
 # Fonction de gestion des entrées utilisateur

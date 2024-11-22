@@ -3,15 +3,15 @@ from ai_strategies.base_strategies import AIStrategy
 
 class StrategieNo1(AIStrategy):
     def execute(self, units, buildings, game_map, ai):
-        for unit in units:
+        for unit in ai.units:  # Limiter aux unités de cette IA
             # Gestion du dépôt des ressources
             if unit.returning_to_town_center:
-                path = unit.find_nearest_town_center(game_map, buildings)
+                path = unit.find_nearest_town_center(game_map, ai.buildings)  # Utilise les bâtiments de l'IA
                 if path:
                     next_step = path.pop(0)
                     unit.move(*next_step)
-                    if (unit.x, unit.y) == (buildings[0].x, buildings[0].y):
-                        unit.deposit_resource(buildings[0])
+                    if (unit.x, unit.y) == (ai.town_center.x, ai.town_center.y):
+                        unit.deposit_resource()
                         unit.returning_to_town_center = False  # Réinitialisation
                         print(f"{unit.unit_type} retourne à la sélection de ressources après dépôt.")
 
@@ -41,12 +41,13 @@ class StrategieNo1(AIStrategy):
                         if farm_tile.building and farm_tile.building.building_type == 'Farm':
                             unit.working_farm = farm_tile.building
                             unit.gather_food_from_farm()
-                    elif nearest_resource[0] == 'Wood':
-                        unit.gather_resource(game_map)
-                    elif nearest_resource[0] == 'Gold':
+                    elif nearest_resource[0] in ['Wood', 'Gold']:
                         unit.gather_resource(game_map)
 
         # Mise à jour pour l'IA
         ai.update_population(0)
-        ai.build(game_map)
+        if ai.can_afford({"Wood": 350}):
+            ai.build(game_map, buildings)
+
+
 

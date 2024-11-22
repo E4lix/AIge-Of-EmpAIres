@@ -22,25 +22,57 @@ last_update_time = 0  # Initialiser last_update_time avant la boucle principale 
 
 
 
+
 # Constants
 SAVE_DIR = "saves"
-DEFAULT_SAVE = os.path.join(SAVE_DIR, "default_game.pkl")
 
 # Global Variables
 units, buildings, game_map, ai, ai = None, None, None, None, None
+ais = []  # Liste contenant toutes les IA des joueurs
+def initialize_strategies(ais):
+    """
+    Associe une stratégie par défaut à chaque IA.
+    Args:
+        ais (list): Liste des IA des joueurs.
+    Returns:
+        list: Liste des stratégies associées.
+    """
+    from ai_strategies.strategie_No1_dev_ai import StrategieNo1
+    return [StrategieNo1() for _ in ais]
+
+# def distribute_strategies(ais):
+#     """
+#     Distribue dynamiquement les stratégies aux IA.
+#     Args:
+#         ais (list): Liste des IA des joueurs.
+#     Returns:
+#         list: Liste des stratégies mises à jour pour chaque IA.
+#     """
+#     from ai_strategies.strategie_aggressive import StrategieAggressive
+#     from ai_strategies.strategie_economique import StrategieEconomique
+#     strategies = []
+#     for ai in ais:
+#         if ai.resources['Wood'] > 100:  # Exemple de condition
+#             strategies.append(StrategieAggressive())
+#         else:
+#             strategies.append(StrategieEconomique())
+#     return strategies
+
+
 
 def list_saves():
     saves = [f for f in os.listdir(SAVE_DIR) if f.endswith(".pkl")]
     return saves
 
 def load_existing_game(filename):
-    global units, buildings, game_map, ai, ai
-    loaded_units, loaded_buildings, loaded_map, loaded_ai = load_game_state(filename)
-    if loaded_units and loaded_buildings and loaded_map and loaded_ai:
-        units, buildings, game_map, ai = loaded_units, loaded_buildings, loaded_map, loaded_ai
-        print(f"[INFO] Chargé : {filename}")
+    global units, buildings, game_map, ais
+    loaded_units, loaded_buildings, loaded_map, loaded_ais = load_game_state(filename)
+    if loaded_units and loaded_buildings and loaded_map and loaded_ais:
+        units, buildings, game_map, ais = loaded_units, loaded_buildings, loaded_map, loaded_ais
     else:
         print("[ERROR] Chargement échoué. Le fichier est corrompu ou n'existe pas.")
+
+
 
 def load_existing_game_curses(stdscr):
     saves = list_saves()
@@ -69,9 +101,14 @@ def load_existing_game_curses(stdscr):
         elif key == ord('\n'):  # Touche entrée
             # Charger la partie sélectionnée
             load_existing_game(os.path.join(SAVE_DIR, saves[selected_option]))
+
+            # Réinitialiser les stratégies après le chargement
+            strategies = initialize_strategies(ais)
+
             # Après chargement, lancez directement la partie avec curses
-            game_loop_curses(stdscr)
+            curses.wrapper(game_loop_curses, strategies)
             return  # Quitte la fonction après avoir lancé la boucle de jeu
+
 
 def load_existing_game_graphics(screen, font):
     saves = list_saves()
@@ -100,11 +137,12 @@ def load_existing_game_graphics(screen, font):
                 elif event.key == pygame.K_UP:
                     selected_option = (selected_option - 1) % len(saves)
                 elif event.key == pygame.K_RETURN:
-                    # Charger la partie sélectionnée
                     load_existing_game(os.path.join(SAVE_DIR, saves[selected_option]))
-                    # Après chargement, lancez directement la boucle de jeu graphique
-                    game_loop_graphics()
-                    return  # Quitte la fonction après avoir lancé la boucle de jeu
+                    strategies = initialize_strategies(ais)
+
+                    game_loop_graphics(screen, strategies)
+                    return
+
 
 def clear_input_buffer(stdscr):
     stdscr.nodelay(True)
@@ -137,14 +175,15 @@ def reset_graphics():
     time.sleep(0.1)
 
 def switch_mode(new_mode):
-    save_game_state(units, buildings, game_map, ai)
+    save_game_state(units, buildings, game_map, ais)
     if new_mode == 'graphics':
         reset_curses()
-        game_loop_graphics()
+        game_loop_graphics(screen, strategies)  
     elif new_mode == 'terminal':
         reset_graphics()
-        curses.wrapper(game_loop_curses)
-        pygame.quit()  # Assure que Pygame est complètement fermé
+        curses.wrapper(game_loop_curses, strategies)
+        pygame.quit()
+
 
 
 
@@ -152,7 +191,7 @@ def switch_mode(new_mode):
 #-------------------------------------------------------------------------------------
 #------Boucle de MAJ des events et des IA
 #-------------------------------------------------------------------------------------
-def update_game(units, buildings, game_map, ai, strategy, delay, last_update_time):
+def update_game(units, buildings, game_map, ais, strategies, delay, last_update_time):
     """
     Met à jour le jeu en utilisant la stratégie spécifiée pour les actions IA.
 
@@ -170,8 +209,8 @@ def update_game(units, buildings, game_map, ai, strategy, delay, last_update_tim
     """
     current_time = time.time()
     if current_time - last_update_time > delay:
-        # Utiliser la stratégie actuelle pour gérer les actions de l'IA
-        strategy.execute(units, buildings, game_map, ai)
+        for ai, strategy in zip(ais, strategies):
+            strategy.execute(units, buildings, game_map, ai)
         return current_time
     return last_update_time
 
@@ -220,7 +259,7 @@ def escape_menu_curses(stdscr):
                         stdscr.refresh()
 
                 try:
-                    save_game_state(units, buildings, game_map, ai, os.path.join(SAVE_DIR, f"{save_name}.pkl"))
+                    save_game_state(units, buildings, game_map, ais, os.path.join(SAVE_DIR, f"{save_name}.pkl"))
                 except Exception as e:
                     stdscr.addstr(7, 0, f"Erreur : {str(e)}")
                     stdscr.refresh()
@@ -316,7 +355,8 @@ def escape_menu_graphics(screen):
                         sys.exit(0)
 
 
-def game_loop_curses(stdscr):
+def game_loop_curses(stdscr, strategies):
+
     global units, buildings, game_map, ai
 
     max_height, max_width = stdscr.getmaxyx()
@@ -336,19 +376,24 @@ def game_loop_curses(stdscr):
 
         # Gère les entrées utilisateur et affiche la carte en curses
         view_x, view_y = handle_input(stdscr, view_x, view_y, max_height, max_width, game_map)
-        display_with_curses(stdscr, game_map, units, buildings, ai, view_x, view_y, max_height, max_width)
-        last_update_time = update_game(units, buildings, game_map, ai, strategy=current_strategy, delay=0.01, last_update_time=last_update_time)
+        display_with_curses(stdscr, game_map, units, buildings, ais, view_x, view_y, max_height, max_width)
+        last_update_time = update_game(units, buildings, game_map, ais, strategies, delay=0.01, last_update_time=last_update_time)
+
+        # if current_time % 10 == 0:  # Redistribue les stratégies toutes les 10 secondes
+        #    strategies = distribute_strategies(ais) a implementer en paralele dans game loop graphics
 
         key = stdscr.getch()
         if key == curses.KEY_F12:
             reset_curses()
-            game_loop_graphics()
+            screen = initialize_graphics()
+            game_loop_graphics(screen, strategies)
             break
         elif key == 27:  # Touche Échap pour ouvrir le menu
             escape_menu_curses(stdscr)
 
 # Correction dans la fonction game_loop_graphics
-def game_loop_graphics():
+def game_loop_graphics(screen, strategies):
+
     global units, buildings, game_map, ai
 
     # Initialiser pygame pour le mode graphique
@@ -368,10 +413,12 @@ def game_loop_graphics():
         view_x, view_y = handle_input_pygame(view_x, view_y, max_width, max_height, game_map)
         
         # Mise à jour du jeu à intervalles réguliers
-        last_update_time = update_game(units, buildings, game_map, ai, strategy=current_strategy, delay=0.01, last_update_time=last_update_time)
+        last_update_time = update_game(units, buildings, game_map, ais, strategies, delay=0.01, last_update_time=last_update_time)
+
 
         # Rendu de la carte et des unités
-        render_map(screen, game_map, units, buildings, ai, view_x, view_y, max_width, max_height)
+        render_map(screen, game_map, units, buildings, ais, view_x, view_y, max_width, max_height)
+
 
 
         # Gérer les événements Pygame (fermeture de fenêtre, bascule de mode, menu)
@@ -381,7 +428,7 @@ def game_loop_graphics():
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_F12:
                     pygame.quit()
-                    curses.wrapper(game_loop_curses)
+                    curses.wrapper(lambda stdscr: game_loop_curses(stdscr, strategies))
                     return
                 elif event.key == pygame.K_ESCAPE:
                     escape_menu_graphics(screen)
@@ -397,7 +444,7 @@ def main_menu_curses():
     curses.wrapper(main_menu_curses_internal)
 
 def main_menu_curses_internal(stdscr):
-    options = ["1. Charger une partie", "2. Continuer la dernière partie", "3. Nouvelle partie", "4. Quitter"]
+    options = ["1. Charger une partie", "2. Nouvelle partie", "3. Quitter"]
     selected_option = 0
 
     while True:
@@ -418,16 +465,11 @@ def main_menu_curses_internal(stdscr):
         elif key == ord('\n'):  # Touche entrée
             if selected_option == 0:  # Charger une partie
                 load_existing_game_curses(stdscr)
-            elif selected_option == 1:  # Continuer la dernière partie
-                loaded_units, loaded_buildings, loaded_map, loaded_ai = load_game_state(DEFAULT_SAVE)
-                if loaded_units and loaded_buildings and loaded_map and loaded_ai:
-                    global units, buildings, game_map, ai
-                    units, buildings, game_map, loaded_ai
-                    curses.wrapper(game_loop_curses)
-            elif selected_option == 2:  # Nouvelle partie
+            elif selected_option == 1:  # Nouvelle partie
                 start_new_game_curses(stdscr)
-            elif selected_option == 3:  # Quitter
+            elif selected_option == 2:  # Quitter
                 sys.exit(0)
+
 
 def start_new_game_curses(stdscr):
     stdscr.clear()
@@ -436,9 +478,9 @@ def start_new_game_curses(stdscr):
     # Options configurables
     input_fields = [
         ("Taille de la carte (par défaut 120x120): ", "120"),
+        ("Nombre de joueurs (IA) (par défaut 2): ", "2"),
         ("Nombre de clusters de bois (par défaut 10): ", "10"),
-        ("Nombre de clusters d'or (par défaut 4): ", "4"),
-        ("Vitesse du jeu (par défaut 1.0): ", "1.0")
+        ("Nombre de clusters d'or (par défaut 4): ", "4")
     ]
     input_values = []
 
@@ -471,49 +513,58 @@ def start_new_game_curses(stdscr):
     # Récupération des valeurs
     try:
         map_size = int(input_values[0])
-        wood_clusters = int(input_values[1])
-        gold_clusters = int(input_values[2])
-        speed = float(input_values[3])
+        num_players = int(input_values[1])
+        wood_clusters = int(input_values[2])
+        gold_clusters = int(input_values[3])
     except ValueError:
         stdscr.addstr(len(input_fields) + 2, 0, "Erreur : Entrée invalide, utilisation des valeurs par défaut.")
         stdscr.refresh()
         time.sleep(2)
         map_size = 120
+        num_players = 2
         wood_clusters = 10
         gold_clusters = 4
-        speed = 1.0
 
     # Initialisation de la nouvelle partie
-    global units, buildings, game_map, ai
+    global units, buildings, game_map, ais
     game_map = Map(map_size, map_size)
     game_map.generate_forest_clusters(num_clusters=wood_clusters, cluster_size=40)
     game_map.generate_gold_clusters(num_clusters=gold_clusters)
-    town_center = Building('Town Center', 10, 10)
-    game_map.place_building(town_center, 10, 10)
-    
-    # Création des unités avant l'IA
-    villager1 = Unit('Villager', 9, 9, None)  # Créez l'unité sans AI pour l'instant
-    villager2 = Unit('Villager', 12, 9, None)
-    villager3 = Unit('Villager', 9, 12, None)
-    units = [villager1, villager2, villager3]
-    buildings = [town_center]
 
-    # Créez l'instance de l'AI après avoir créé les unités
-    ai = AI(buildings, units)
+    ais = []
+    units = []
+    buildings = []
 
-    # Mettre à jour les unités avec l'instance correcte de l'IA
-    for unit in units:
-        unit.ai = ai
+    # Créer les IA, Town Centers, et assigner les unités
+    for i in range(num_players):
+        town_center_x, town_center_y = 10 + i * 20, 10 + i * 20  # Positionnement décalé
+        town_center = Building('Town Center', town_center_x, town_center_y)
+        game_map.place_building(town_center, town_center_x, town_center_y)
+        buildings.append(town_center)
 
-    # Lancer la boucle de jeu avec curses
-    curses.wrapper(game_loop_curses)
+        ai = AI([town_center], [])
+        ais.append(ai)
+
+        for j in range(3):  # 3 unités par IA
+            villager_x, villager_y = town_center_x + j, town_center_y + j
+            villager = Unit('Villager', villager_x, villager_y, ai)
+            units.append(villager)
+            ai.units.append(villager)
+
+    # Initialisation des stratégies
+    strategies = initialize_strategies(ais)
+
+    # Lancer la boucle de jeu en passant `strategies` en paramètre
+    curses.wrapper(game_loop_curses, strategies)
+
+
 
 
 def main_menu_graphics():
     pygame.init()
     screen = pygame.display.set_mode((screen_width, screen_height))
     font = pygame.font.Font(None, 36)
-    options = ["1. Charger une partie", "2. Continuer la dernière partie", "3. Nouvelle partie", "4. Quitter"]
+    options = ["1. Charger une partie", "2. Nouvelle partie", "3. Quitter"]
     selected_option = 0
     running = True
 
@@ -536,36 +587,31 @@ def main_menu_graphics():
                 elif event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
                     if selected_option == 0:  # Charger une partie
                         load_existing_game_graphics(screen, font)
-                    elif selected_option == 1:  # Continuer la dernière partie
-                        loaded_units, loaded_buildings, loaded_map, loaded_ai = load_game_state(DEFAULT_SAVE)
-                        if loaded_units and loaded_buildings and loaded_map and loaded_ai:
-                            global units, buildings, game_map, ai
-                            units, buildings, game_map, ai = loaded_units, loaded_buildings, loaded_map, loaded_ai
-                            game_loop_graphics()
-                    elif selected_option == 2:  # Nouvelle partie
+                    elif selected_option == 1:  # Nouvelle partie
                         start_new_game_graphics(screen, font)
-                    elif selected_option == 3:  # Quitter
+                    elif selected_option == 2:  # Quitter
                         sys.exit(0)
+
 
 def start_new_game_graphics(screen, font):
     input_fields = [
         ("Taille de la carte (par défaut 120x120): ", "120"),
+        ("Nombre de joueurs (IA) (par défaut 2): ", "2"),
         ("Nombre de clusters de bois (par défaut 10): ", "10"),
-        ("Nombre de clusters d'or (par défaut 4): ", "4"),
-        ("Vitesse du jeu (par défaut 1.0): ", "1.0")
+        ("Nombre de clusters d'or (par défaut 4): ", "4")
     ]
     input_values = []
 
-    # Pour chaque champ de saisie
-    for idx, (prompt, default) in enumerate(input_fields):
+    # Saisie des paramètres par l'utilisateur
+    for prompt, default in input_fields:
         input_text = default
         running = True
         while running:
             screen.fill((0, 0, 0))
             prompt_surface = font.render(prompt, True, (255, 255, 255))
             input_surface = font.render(input_text, True, (255, 255, 255))
-            screen.blit(prompt_surface, (20, 50 + idx * 60))
-            screen.blit(input_surface, (20, 100 + idx * 60))
+            screen.blit(prompt_surface, (20, 50))
+            screen.blit(input_surface, (20, 100))
             pygame.display.flip()
 
             for event in pygame.event.get():
@@ -573,73 +619,59 @@ def start_new_game_graphics(screen, font):
                     sys.exit(0)
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_RETURN:
-                        running = False  # Terminer la saisie du champ actuel
+                        running = False
                     elif event.key == pygame.K_BACKSPACE:
                         input_text = input_text[:-1]
-                    elif event.key in (pygame.K_ESCAPE, pygame.K_F12):
-                        return  # Retourne au menu principal sans rien faire
-                    elif 32 <= event.key <= 126:  # Caractères imprimables uniquement
+                    elif 32 <= event.key <= 126:
                         input_text += event.unicode
 
         input_values.append(input_text)
 
-    # Une fois les valeurs saisies, afficher le bouton "Lancer la Partie"
-    launch_button_selected = True
-    running = True
-    while running:
-        screen.fill((0, 0, 0))
-        # Affiche les valeurs saisies
-        for idx, (prompt, value) in enumerate(zip([f[0] for f in input_fields], input_values)):
-            prompt_surface = font.render(f"{prompt} {value}", True, (255, 255, 255))
-            screen.blit(prompt_surface, (20, 50 + idx * 60))
-
-        # Affiche le bouton "Lancer la Partie"
-        button_color = (255, 255, 0) if launch_button_selected else (100, 100, 100)
-        button_text = font.render("Lancer la Partie", True, button_color)
-        screen.blit(button_text, (20, 100 + len(input_fields) * 60))
-        pygame.display.flip()
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                sys.exit(0)
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RETURN and launch_button_selected:
-                    running = False  # Lancer la partie
-                elif event.key == pygame.K_UP or event.key == pygame.K_DOWN:
-                    launch_button_selected = not launch_button_selected
-                elif event.key in (pygame.K_ESCAPE, pygame.K_F12):
-                    return  # Retourne au menu principal sans rien faire
-
-    # Récupération des valeurs et lancement de la partie
+    # Récupération des valeurs
     try:
         map_size = int(input_values[0])
-        wood_clusters = int(input_values[1])
-        gold_clusters = int(input_values[2])
-        speed = float(input_values[3])
+        num_players = int(input_values[1])
+        wood_clusters = int(input_values[2])
+        gold_clusters = int(input_values[3])
     except ValueError:
-        # En cas d'erreur de saisie, utiliser les valeurs par défaut
         map_size = 120
+        num_players = 2
         wood_clusters = 10
         gold_clusters = 4
-        speed = 1.0
 
     # Initialisation de la nouvelle partie
-    global units, buildings, game_map, ai, ai
-    game_map = Map(120, 120)
-    game_map.generate_forest_clusters(num_clusters=10, cluster_size=40)
-    game_map.generate_gold_clusters(num_clusters=4)
-    town_center = Building('Town Center', 10, 10)
-    game_map.place_building(town_center, 10, 10)
-    ai = AI(buildings, units)  # Initialisation de l'objet AI
-    villager = Unit('Villager', 9, 9, ai)
-    villager2 = Unit('Villager', 12, 9, ai)
-    villager3 = Unit('Villager', 9, 12, ai)
-    units = [villager, villager2, villager3]
-    buildings = [town_center]
-    ai = AI(ai, buildings, units)  # Passage de l'objet ai à l'IA
+    global units, buildings, game_map, ais
+    game_map = Map(map_size, map_size)
+    game_map.generate_forest_clusters(num_clusters=wood_clusters, cluster_size=40)
+    game_map.generate_gold_clusters(num_clusters=gold_clusters)
 
-    # Lancer la boucle de jeu graphique
-    game_loop_graphics()
+    ais = []
+    units = []
+    buildings = []
+
+    # Création des joueurs IA, Town Centers, et assignation des unités
+    for i in range(num_players):
+        town_center_x, town_center_y = 10 + i * 20, 10 + i * 20  # Décalage pour chaque IA
+        town_center = Building('Town Center', town_center_x, town_center_y)
+        game_map.place_building(town_center, town_center_x, town_center_y)
+        buildings.append(town_center)
+
+        ai = AI([town_center], [])
+        ais.append(ai)
+
+        for j in range(3):  # 3 villageois par IA
+            villager_x, villager_y = town_center_x + j, town_center_y + j
+            villager = Unit('Villager', villager_x, villager_y, ai)
+            units.append(villager)
+            ai.units.append(villager)
+
+    # Initialisation des stratégies
+    strategies = initialize_strategies(ais)
+
+    # Lancer la boucle graphique
+    game_loop_graphics(screen, strategies)
+
+
 
 def render_text(screen, font, text, position, color=(255, 255, 255)):
     text_surface = font.render(text, True, color)
@@ -650,7 +682,6 @@ def render_text(screen, font, text, position, color=(255, 255, 255)):
 def init_game():
     global units, buildings, game_map, ai, ai
     os.makedirs(SAVE_DIR, exist_ok=True)
-    loaded_units, loaded_buildings, loaded_map, loaded_ai = load_game_state(DEFAULT_SAVE)
     if loaded_units and loaded_buildings and loaded_map and loaded_ai:
         units, buildings, game_map, ai = loaded_units, loaded_buildings, loaded_map, loaded_ai
     else:
