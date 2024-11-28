@@ -4,15 +4,15 @@ import numpy as np
 # Classe Tilemap
 class Tilemap:
     def __init__(self, tileset, size, rect=None):
-        self.size = size
-        self.tileset = tileset
-        self.map = np.zeros(size, dtype=int)
-        self.overlay_map = np.full(size, -1, dtype=int)
+        self.size = size # Taille de la map
+        self.tileset = tileset # Tileset utilisé pour les textures de la map
+        self.map = np.zeros(size, dtype=int) # Matrice des coordonnées de la map
+        self.overlay_map = np.full(size, -1, dtype=int) # Matrice des coordonnées de l'overlay décor
 
         self.zoom_factor = 1.0  # Facteur de zoom (1.0 = taille normale)
 
-        self.floor_tile = [2, 13, 24]
-        self.decor_set = [4, 15, 26]
+        self.floor_tile = [80] # Liste des tiles pour le sol
+        self.decor_set = [48, 59, 70, 81, 92] # Liste des tiles pour le décor
 
         h, w = self.size
         self.image = pygame.Surface((32 * w, 32 * h))
@@ -44,8 +44,8 @@ class Tilemap:
     # Render une map cohérente
     def render_normal(self, floor_tile):
         m, n = self.map.shape
-        x_offset = 0
-        y_offset = -8
+        x_offset = -2
+        y_offset = -10
         self.image.fill((0, 0, 0, 0))  # Efface l'image précédente avec de la transparence
         # Sol/Terrain
         for i in range(m):
@@ -62,6 +62,7 @@ class Tilemap:
                     screen_x, screen_y = self.iso_to_screen(i ,j)
                     self.image.blit(overlay_tile, ((screen_x + x_offset) + self.image.get_width() // 2, screen_y + y_offset))
 
+    # Spécifie le placement aléatoire de l'overlay décor
     def set_random_overlay(self, probability):
         m, n = self.overlay_map.shape
         for i in range(m):
@@ -72,10 +73,12 @@ class Tilemap:
                     self.overlay_map[i, j] = -1  # Pas de tuile
         self.render_normal(self.floor_tile)
 
+    # Crée une map cohérente
     def set_normal(self):
         self.map = np.zeros(self.size, dtype=int)
         self.render_normal(self.floor_tile)
 
+    # Crée une map randomisée
     def set_random(self):
         n = len(self.tileset.tiles)
         self.map = np.random.randint(n, size=self.size)
