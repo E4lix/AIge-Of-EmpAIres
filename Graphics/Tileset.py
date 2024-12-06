@@ -13,6 +13,12 @@ class Tileset:
         self.load() # Charge le tileset
 
     def load(self):
+        """
+        Charge le fichier choisit pour le séparer en une liste de tiles numérotés colonnes par colonnes, lignes par lignes
+
+        Return:
+            list: Liste des tiles
+        """
         self.tiles = []
         x0 = y0 = self.margin
         w, h = self.rect.size

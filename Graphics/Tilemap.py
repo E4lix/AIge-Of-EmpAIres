@@ -11,7 +11,7 @@ class Tilemap:
 
         self.zoom_factor = 1.0  # Facteur de zoom (1.0 = taille normale)
 
-        self.floor_tile = [80] # Liste des tiles pour le sol
+        self.floor_tile = [80, 2, 13, 24] # Liste des tiles pour le sol
         self.decor_set = [48, 59, 70, 81, 92] # Liste des tiles pour le décor
 
         h, w = self.size
@@ -22,10 +22,26 @@ class Tilemap:
             self.rect = self.image.get_rect()
 
     def set_zoom(self, zoom):
+        """
+        Gère le niveau de zoom sur la map
+
+        Args:
+            zoom: float représentant le niveau de zoom
+        """
         self.zoom_factor = max(0.1, zoom)  # Évite un zoom trop petit ou négatif
 
     # Convertit les coordonnées de la grille en coordonnées pour les textures isométriques
     def iso_to_screen(self, i, j):
+        """
+        Calcul les coordonnées des élements entrée pour les convertir en coordonnées isométriques
+
+        Args:
+            i: Abscisse de l'élément
+            j: Ordonné de l'élément
+
+        Return:
+            int: Abscisse et Ordonné en coordonnées isométriques
+        """
         tile_width, tile_height = self.tileset.size
         x = (i - j) * (tile_width // 2)
         y = (i + j) * (tile_height // 4)
