@@ -40,7 +40,6 @@ class AI:
         self.town_center = buildings[0]
 
     # Autres méthodes de la classe AI
-
     def build(self, game_map):
         """Méthode pour construire un bâtiment si les ressources sont disponibles."""
         # Exemple : Construire une ferme si assez de bois et d'or
@@ -59,7 +58,6 @@ class AI:
             pass
             #print("Pas assez de ressources pour construire.")
 
-
     def find_valid_build_location(self, game_map):
         """Trouver une position libre à proximité immédiate du Town Center pour construire une ferme."""
         # Centre du Town Center
@@ -76,8 +74,6 @@ class AI:
         # Aucun emplacement disponible trouvé dans la zone de recherche
         #print("Aucun emplacement libre trouvé dans la zone de 3 cases autour du Town Center pour la ferme.")
         return None, None
-
-
 
     def update_resources(self, resource_type, amount):
         if resource_type in self.resources:
@@ -98,7 +94,6 @@ class AI:
     def update_population(self, change):
         self.population += change
         #print(f"Population mise à jour : {self.population}/{self.population_max}")
-
 
     def set_victoire(self, status):
         self.victoire = status

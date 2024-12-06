@@ -9,7 +9,6 @@ from view import display_with_curses, handle_input, init_colors
 from view_graphics import handle_input_pygame, render_map, screen_width, screen_height, TILE_WIDTH, TILE_HEIGHT, initialize_graphics
 from game_utils import save_game_state, load_game_state
 
-
 from ai_strategies.base_strategies import AI
 
 from ai_strategies.strategie_No1_dev_ai import StrategieNo1  # Importer la stratégie spécifique
@@ -113,7 +112,6 @@ def clear_input_buffer(stdscr):
             break
     stdscr.nodelay(False)
 
-
 def signal_handler(sig, frame):
     #print("[INFO] Exiting due to CTRL+C")
     curses.endwin()
@@ -144,11 +142,9 @@ def switch_mode(new_mode):
         curses.wrapper(game_loop_curses)
         pygame.quit()  # Assure que Pygame est complètement fermé
 
-
-
 #-------------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------------
-#------Boucle de MAJ des events et des IA
+#------Boucle de MAJ des events et des IA---------------------------------------------
 #-------------------------------------------------------------------------------------
 def update_game(units, buildings, game_map, ai, strategy, delay, last_update_time):
     """
@@ -269,7 +265,6 @@ def input_text_pygame(screen, font, prompt):
                 elif 32 <= event.key <= 126:  # Caractères imprimables uniquement
                     input_text += event.unicode
 
-
 def escape_menu_graphics(screen):
     font = pygame.font.Font(None, 36)
     options = ["1. Sauvegarder", "2. Charger", "3. Reprendre", "4. Retour au Menu Principal", "5. Quitter"]
@@ -388,8 +383,6 @@ def game_loop_graphics():
         clock.tick(30)
 
     pygame.quit()
-
-
 
 def main_menu_curses():
     curses.wrapper(main_menu_curses_internal)
@@ -642,8 +635,6 @@ def start_new_game_graphics(screen, font):
 def render_text(screen, font, text, position, color=(255, 255, 255)):
     text_surface = font.render(text, True, color)
     screen.blit(text_surface, position)
-
-
 
 def init_game():
     global units, buildings, game_map, ai, ai
