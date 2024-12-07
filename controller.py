@@ -12,14 +12,14 @@ from game_utils import save_game_state, load_game_state
 
 from ai_strategies.base_strategies import AI
 
-from ai_strategies.strategie_No1_dev_ai import StrategieNo1  # Importer la stratégie spécifique
-# Création de la stratégie choisie
+
+
+from ai_strategies.strategie_aggressive import StrategieAggressive
+from ai_strategies.strategie_No1_dev_ai import StrategieNo1 
+
 current_strategy = StrategieNo1()
 
-# Utilisation de la stratégie dans update_game
 last_update_time = 0  # Initialiser last_update_time avant la boucle principale du jeu
-
-
 
 
 
@@ -30,33 +30,16 @@ SAVE_DIR = "saves"
 units, buildings, game_map, ai, ai = None, None, None, None, None
 ais = []  # Liste contenant toutes les IA des joueurs
 def initialize_strategies(ais):
-    """
-    Associe une stratégie par défaut à chaque IA.
-    Args:
-        ais (list): Liste des IA des joueurs.
-    Returns:
-        list: Liste des stratégies associées.
-    """
+    """Associe une stratégie différente à chaque IA."""
     from ai_strategies.strategie_No1_dev_ai import StrategieNo1
-    return [StrategieNo1() for _ in ais]
-
-# def distribute_strategies(ais):
-#     """
-#     Distribue dynamiquement les stratégies aux IA.
-#     Args:
-#         ais (list): Liste des IA des joueurs.
-#     Returns:
-#         list: Liste des stratégies mises à jour pour chaque IA.
-#     """
-#     from ai_strategies.strategie_aggressive import StrategieAggressive
-#     from ai_strategies.strategie_economique import StrategieEconomique
-#     strategies = []
-#     for ai in ais:
-#         if ai.resources['Wood'] > 100:  # Exemple de condition
-#             strategies.append(StrategieAggressive())
-#         else:
-#             strategies.append(StrategieEconomique())
-#     return strategies
+    from ai_strategies.strategie_aggressive import StrategieAggressive
+    strategies = []
+    for i, ai in enumerate(ais):
+        if i % 2 == 0:
+            strategies.append(StrategieNo1())
+        else:
+            strategies.append(StrategieAggressive())
+    return strategies
 
 
 
@@ -185,6 +168,20 @@ def switch_mode(new_mode):
         pygame.quit()
 
 
+def switch_strategy(ais, strategies, ai_to_switch, new_strategy):
+    """
+    Change dynamiquement la stratégie d'une IA.
+
+    Args:
+        ais (list): Liste des IA dans le jeu.
+        strategies (list): Liste des stratégies associées aux IA.
+        ai_to_switch (AI): L'IA dont la stratégie doit être changée.
+        new_strategy (AIStrategy): La nouvelle stratégie à appliquer.
+    """
+    index = ais.index(ai_to_switch)  # Trouve l'index de l'IA
+    strategies[index] = new_strategy  # Met à jour la stratégie de cette IA
+    print(f"La stratégie de l'IA {index + 1} a été changée en {new_strategy.__class__.__name__}.")
+
 
 
 #-------------------------------------------------------------------------------------
@@ -207,10 +204,18 @@ def update_game(units, buildings, game_map, ais, strategies, delay, last_update_
     Returns:
         float: Temps de la dernière mise à jour (actualisé si nécessaire).
     """
-    current_time = time.time()
+    current_time = time.time() #voir aussi time.perf_counter pour plus de precision au besoin
     if current_time - last_update_time > delay:
         for ai, strategy in zip(ais, strategies):
+            # Exécute la stratégie actuelle
             strategy.execute(units, buildings, game_map, ai)
+
+            # Vérifie si les ennemis sont absents et change de stratégie
+            if not ai.enemy_units and isinstance(strategy, StrategieAggressive):
+                print(f"[INFO] IA {ais.index(ai) + 1} n'a plus d'ennemis.")
+                new_strategy = StrategieNo1()
+                switch_strategy(ais, strategies, ai, new_strategy)
+
         return current_time
     return last_update_time
 
@@ -379,9 +384,6 @@ def game_loop_curses(stdscr, strategies):
         display_with_curses(stdscr, game_map, units, buildings, ais, view_x, view_y, max_height, max_width)
         last_update_time = update_game(units, buildings, game_map, ais, strategies, delay=0.01, last_update_time=last_update_time)
 
-        # if current_time % 10 == 0:  # Redistribue les stratégies toutes les 10 secondes
-        #    strategies = distribute_strategies(ais) a implementer en paralele dans game loop graphics
-
         key = stdscr.getch()
         if key == curses.KEY_F12:
             reset_curses()
@@ -391,7 +393,6 @@ def game_loop_curses(stdscr, strategies):
         elif key == 27:  # Touche Échap pour ouvrir le menu
             escape_menu_curses(stdscr)
 
-# Correction dans la fonction game_loop_graphics
 def game_loop_graphics(screen, strategies):
 
     global units, buildings, game_map, ai
@@ -537,13 +538,16 @@ def start_new_game_curses(stdscr):
 
     # Créer les IA, Town Centers, et assigner les unités
     for i in range(num_players):
-        town_center_x, town_center_y = 10 + i * 20, 10 + i * 20  # Positionnement décalé
-        town_center = Building('Town Center', town_center_x, town_center_y)
-        game_map.place_building(town_center, town_center_x, town_center_y)
-        buildings.append(town_center)
-
-        ai = AI([town_center], [])
+        town_center_x, town_center_y = 10 + i * 20, 10 + i * 20
+        ai = AI([], [])  # Crée une nouvelle IA
         ais.append(ai)
+
+        town_center = Building('Town Center', town_center_x, town_center_y, owner=ai)
+        ai.town_center = town_center  # Ajoutez cette ligne pour associer explicitement le Town Center à l'IA
+
+        game_map.place_building(town_center, town_center_x, town_center_y, buildings)
+        buildings.append(town_center)
+        ai.buildings.append(town_center)  # Associe le bâtiment à l'IA
 
         for j in range(3):  # 3 unités par IA
             villager_x, villager_y = town_center_x + j, town_center_y + j
@@ -551,12 +555,23 @@ def start_new_game_curses(stdscr):
             units.append(villager)
             ai.units.append(villager)
 
+    # Configuration des ennemis pour chaque IA
+    for ai in ais:
+        ai.set_enemies([a for a in ais if a != ai])
+
     # Initialisation des stratégies
     strategies = initialize_strategies(ais)
 
+    # Debug : afficher les bâtiments de chaque IA
+    for i, ai in enumerate(ais):
+        print(f"IA {i + 1} possède les bâtiments : {[b.building_type for b in ai.buildings]} avec Town Center à ({ai.town_center.x}, {ai.town_center.y})")
+
+
+    # Debug : vérifier les tuiles de la carte
+    game_map.debug_tile_dict()
+
     # Lancer la boucle de jeu en passant `strategies` en paramètre
     curses.wrapper(game_loop_curses, strategies)
-
 
 
 
@@ -651,22 +666,40 @@ def start_new_game_graphics(screen, font):
 
     # Création des joueurs IA, Town Centers, et assignation des unités
     for i in range(num_players):
-        town_center_x, town_center_y = 10 + i * 20, 10 + i * 20  # Décalage pour chaque IA
-        town_center = Building('Town Center', town_center_x, town_center_y)
-        game_map.place_building(town_center, town_center_x, town_center_y)
-        buildings.append(town_center)
-
-        ai = AI([town_center], [])
+        town_center_x, town_center_y = 10 + i * 20, 10 + i * 20
+        ai = AI([], [])  # Crée une nouvelle IA
         ais.append(ai)
 
-        for j in range(3):  # 3 villageois par IA
+        town_center = Building('Town Center', town_center_x, town_center_y, owner=ai)
+        ai.town_center = town_center  # Ajoutez cette ligne pour associer explicitement le Town Center à l'IA
+
+        game_map.place_building(town_center, town_center_x, town_center_y, buildings)
+        buildings.append(town_center)
+        ai.buildings.append(town_center)  # Associe le bâtiment à l'IA
+
+        for j in range(3):  # 3 unités par IA
             villager_x, villager_y = town_center_x + j, town_center_y + j
             villager = Unit('Villager', villager_x, villager_y, ai)
             units.append(villager)
             ai.units.append(villager)
 
+    # Configuration des ennemis pour chaque IA
+    for ai in ais:
+        ai.set_enemies([a for a in ais if a != ai])
+        for building in ai.buildings:
+            assert building.owner == ai, f"Erreur : {building.building_type} à ({building.x}, {building.y}) n'appartient pas à {ai}."
+
     # Initialisation des stratégies
     strategies = initialize_strategies(ais)
+
+    # Debug : afficher les bâtiments de chaque IA
+    for i, ai in enumerate(ais):
+        assert ai.town_center.owner == ai, f"Erreur : Town Center de l'IA {i + 1} n'appartient pas à l'IA."
+        print(f"IA {i + 1} possède le Town Center à ({ai.town_center.x}, {ai.town_center.y}).")
+
+
+    # Debug : vérifier les tuiles de la carte
+    game_map.debug_tile_dict()
 
     # Lancer la boucle graphique
     game_loop_graphics(screen, strategies)

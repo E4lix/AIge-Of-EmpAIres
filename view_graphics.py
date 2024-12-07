@@ -24,6 +24,10 @@ def initialize_graphics():
         images['town_center'] = pygame.transform.scale(pygame.image.load("assets/town_center.png").convert_alpha(), (TILE_WIDTH * 2, TILE_HEIGHT * 2))  # Adjusted size to match scale
         images['villager'] = pygame.transform.scale(pygame.image.load("assets/villager.png").convert_alpha(), (TILE_WIDTH // 2, TILE_HEIGHT))  # Adjusted size to be smaller
         images['farm'] = pygame.transform.scale(pygame.image.load("assets/farm.png").convert_alpha(), (TILE_WIDTH * 2, TILE_HEIGHT * 2))  # Nouvelle ligne pour la ferme
+        images['soldier'] = pygame.transform.scale(pygame.image.load("assets/soldier.png").convert_alpha(), (TILE_WIDTH // 2, TILE_HEIGHT))
+        images['archer'] = pygame.transform.scale(pygame.image.load("assets/archer.png").convert_alpha(), (TILE_WIDTH // 2, TILE_HEIGHT))
+        images['cavalier'] = pygame.transform.scale(pygame.image.load("assets/cavalier.png").convert_alpha(), (TILE_WIDTH // 2, TILE_HEIGHT))
+
     except pygame.error as e:
         print(f"Erreur de chargement de l'image : {e}")
         sys.exit(1)
@@ -66,8 +70,16 @@ def render_map(screen, game_map, units, buildings, ais, view_x, view_y, max_widt
     for unit in units:
         screen_x = (unit.x - unit.y) * (TILE_WIDTH // 2) + (screen_width // 2) - TILE_WIDTH // 2 - (view_x - view_y) * (TILE_WIDTH // 2)
         screen_y = (unit.x + unit.y) * (TILE_HEIGHT // 2) - (view_x + view_y) * (TILE_HEIGHT // 2)
+
         if unit.unit_type == 'Villager':
             screen.blit(images['villager'], (screen_x, screen_y - TILE_HEIGHT // 2))  # Décalage pour l'unité
+        elif unit.unit_type == 'Soldier':
+            screen.blit(images['soldier'], (screen_x, screen_y - TILE_HEIGHT // 2))
+        elif unit.unit_type == 'Archer':
+            screen.blit(images['archer'], (screen_x, screen_y - TILE_HEIGHT // 2))
+        elif unit.unit_type == 'Cavalier':
+            screen.blit(images['cavalier'], (screen_x, screen_y - TILE_HEIGHT // 2))
+
 
     # Afficher les ressources pour chaque IA en haut de l'écran
     font = pygame.font.Font(None, 36)
@@ -80,6 +92,7 @@ def render_map(screen, game_map, units, buildings, ais, view_x, view_y, max_widt
         resources_text = font.render(resources_info, True, (255, 255, 255))
         screen.blit(resources_text, (20, 20 + y_offset))
         y_offset += 30
+
 
     # Update the display
     pygame.display.flip()
