@@ -15,7 +15,7 @@ class Tilemap:
         self.decor_set = [48, 59, 70, 81, 92] # Liste des tiles pour le décor
 
         h, w = self.size
-        self.image = pygame.Surface((32 * w, 32 * h))
+        self.image = pygame.Surface((32 * w + 32, 32 * h)) # + 32 car sinon il manque une demi case à droite
         if rect:
             self.rect = pygame.Rect(rect)
         else:
