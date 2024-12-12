@@ -50,7 +50,9 @@ class Game:
         self.screen.blit(zoomed_image, (map_x, map_y))
 
     def draw_move_map(self):
-        """Dessine la tilemap déplacée en fonction des coordonnées."""
+        """
+        Dessine la tilemap déplacée en fonction des coordonnées.
+        """
         zoomed_image = pygame.transform.scale(
             self.tilemap.image,
             (int(self.tilemap.image.get_width() * self.tilemap.zoom_factor),

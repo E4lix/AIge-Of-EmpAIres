@@ -13,13 +13,17 @@ class Minimap:
         self.update_minimap()
 
     def update_minimap(self):
+        """
+        Met à jour la minimap pour qu'elle corresponde à ce qui est affiché à l'écran
+        """
         self.image.fill((0, 0, 0))  # Réinitialise l'image de la minimap
-        for i in range(self.tilemap.size[0]):
-            for j in range(self.tilemap.size[1]):
-                tile = self.tilemap.tileset.tiles[self.tilemap.map[i, j]]
-                x, y = self.tilemap.iso_to_screen(i, j)
-                minimap_x = int(x * self.scale_factor)
-                minimap_y = int(y * self.scale_factor)
+
+        for i in range(self.tilemap.size[0]): # Parcours les colonnes de la map
+            for j in range(self.tilemap.size[1]): # Parcours les lignes de la map
+                tile = self.tilemap.tileset.tiles[self.tilemap.map[i, j]] # self.tilemap.map[i, j] est l'identifiant de la tuile aux coordonnées (i, j)
+                x, y = self.tilemap.iso_to_screen(i, j) # Adapte les coordonnées (i, j) à l'affichage iso
+                minimap_x = int(x * self.scale_factor) # Mise à l'échelle de la coordonnée x
+                minimap_y = int(y * self.scale_factor) # Mise à l'échelle de la coordonnée y
 
                 # Appliquer un zoom sur chaque tuile
                 tile_width, tile_height = self.tilemap.tileset.size
@@ -28,5 +32,7 @@ class Minimap:
                 self.image.blit(zoomed_tile, (minimap_x, minimap_y))
 
     def draw(self, screen):
-        """Affiche la minimap sur l'écran."""
+        """
+        Affiche la minimap sur l'écran.
+        """
         screen.blit(self.image, self.position)

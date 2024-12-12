@@ -11,7 +11,7 @@ class Tilemap:
 
         self.zoom_factor = 1.0  # Facteur de zoom (1.0 = taille normale)
 
-        self.floor_tile = [80, 2, 13, 24] # Liste des tiles pour le sol
+        self.floor_tile = [2, 13, 24] # Liste des tiles pour le sol
         self.decor_set = [48, 59, 70, 81, 92] # Liste des tiles pour le décor
 
         h, w = self.size
@@ -49,6 +49,9 @@ class Tilemap:
 
     # Render une map aléatoire
     def render_random(self):
+        """
+        Génère une map avec des tiles sélectionnées aléatoirement
+        """
         m, n = self.map.shape
         self.image.fill((0, 0, 0, 0))  # Efface l'image précédente avec de la transparence
         for i in range(m):
@@ -59,6 +62,12 @@ class Tilemap:
 
     # Render une map cohérente
     def render_normal(self, floor_tile):
+        """
+        Génère une map avec des tiles sélectionnées dans une liste cohérente pour les différents élements
+
+        Args:
+            floor_tile: Liste des tiles utilisées pour le sol
+        """
         m, n = self.map.shape
         x_offset = -2
         y_offset = -10
@@ -66,9 +75,9 @@ class Tilemap:
         # Sol/Terrain
         for i in range(m):
             for j in range(n):
-                tile = self.tileset.tiles[np.random.choice(floor_tile)]
-                screen_x, screen_y = self.iso_to_screen(i, j)
-                self.image.blit(tile, (screen_x + self.image.get_width() // 2, screen_y))
+                tile = self.tileset.tiles[np.random.choice(floor_tile)] # Choisis une tile aléatoire parmi la liste proposée
+                x, y = self.iso_to_screen(i, j) # Adapte les coordonnées à l'affichage iso
+                self.image.blit(tile, (x + self.image.get_width() // 2, y))
         # Décor
         for i in range(m):
             for j in range(n):
@@ -80,6 +89,12 @@ class Tilemap:
 
     # Spécifie le placement aléatoire de l'overlay décor
     def set_random_overlay(self, probability):
+        """
+        Génère des obstacles tiles d'objets placés aléatoirement sur la map
+
+        Args:
+            probability: Probabilité d'apparition d'un objet
+        """
         m, n = self.overlay_map.shape
         for i in range(m):
             for j in range(n):
@@ -91,11 +106,17 @@ class Tilemap:
 
     # Crée une map cohérente
     def set_normal(self):
+        """
+        Crée et affiche une map cohérente
+        """
         self.map = np.zeros(self.size, dtype=int)
         self.render_normal(self.floor_tile)
 
     # Crée une map randomisée
     def set_random(self):
+        """
+        Crée et affiche une map aléatoire
+        """
         n = len(self.tileset.tiles)
         self.map = np.random.randint(n, size=self.size)
         self.render_random()
