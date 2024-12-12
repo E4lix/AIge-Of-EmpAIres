@@ -15,7 +15,7 @@ class Tilemap:
         self.decor_set = [48, 59, 70, 81, 92] # Liste des tiles pour le décor
 
         h, w = self.size
-        self.image = pygame.Surface((32 * w + 32, 32 * h)) # + 32 car sinon il manque une demi case à droite
+        self.image = pygame.Surface((32 * w + 32, 32 * h - 32)) # + 32 car sinon il manque une demi case à droite
         if rect:
             self.rect = pygame.Rect(rect)
         else:
@@ -69,16 +69,16 @@ class Tilemap:
             floor_tile: Liste des tiles utilisées pour le sol
         """
         m, n = self.map.shape
-        x_offset = -2
-        y_offset = -10
+        x_offset = -2 # Valeur trouvée à tâtons
+        y_offset = -10 # Valeur trouvée à tâtons
         self.image.fill((0, 0, 0, 0))  # Efface l'image précédente avec de la transparence
-        # Sol/Terrain
+            # Sol/Terrain
         for i in range(m):
             for j in range(n):
                 tile = self.tileset.tiles[np.random.choice(floor_tile)] # Choisis une tile aléatoire parmi la liste proposée
                 x, y = self.iso_to_screen(i, j) # Adapte les coordonnées à l'affichage iso
                 self.image.blit(tile, (x + self.image.get_width() // 2, y))
-        # Décor
+            # Décor
         for i in range(m):
             for j in range(n):
                 tile_index = self.overlay_map[i, j]

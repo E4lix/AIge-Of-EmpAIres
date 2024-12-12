@@ -1,4 +1,6 @@
 import pygame
+from pygame import SRCALPHA
+
 
 class Minimap:
     def __init__(self, tilemap, screen, scale_factor, position):
@@ -14,22 +16,27 @@ class Minimap:
 
     def update_minimap(self):
         """
-        Met à jour la minimap pour qu'elle corresponde à ce qui est affiché à l'écran
+        Met à jour la minimap avec la taille adaptée, fond transparent, et affichage correct.
         """
-        self.image.fill((0, 0, 0))  # Réinitialise l'image de la minimap
+        # Calcul de la taille de la minimap en fonction de la taille de la tilemap
+        tilemap_width = self.tilemap.image.get_width()
+        tilemap_height = self.tilemap.image.get_height()
 
-        for i in range(self.tilemap.size[0]): # Parcours les colonnes de la map
-            for j in range(self.tilemap.size[1]): # Parcours les lignes de la map
-                tile = self.tilemap.tileset.tiles[self.tilemap.map[i, j]] # self.tilemap.map[i, j] est l'identifiant de la tuile aux coordonnées (i, j)
-                x, y = self.tilemap.iso_to_screen(i, j) # Adapte les coordonnées (i, j) à l'affichage iso
-                minimap_x = int(x * self.scale_factor) # Mise à l'échelle de la coordonnée x
-                minimap_y = int(y * self.scale_factor) # Mise à l'échelle de la coordonnée y
+        # Application de l'échelle et du zoom
+        minimap_width = int(tilemap_width * self.scale_factor)
+        minimap_height = int(tilemap_height * self.scale_factor)
 
-                # Appliquer un zoom sur chaque tuile
-                tile_width, tile_height = self.tilemap.tileset.size
-                zoomed_tile = pygame.transform.scale(tile, (
-                int(tile_width * self.scale_factor), int(tile_height * self.scale_factor)))
-                self.image.blit(zoomed_tile, (minimap_x, minimap_y))
+        # Création d'une surface transparente
+        self.image = pygame.Surface((minimap_width, minimap_height//2), pygame.SRCALPHA)
+        # self.image.fill((0, 0, 0, 0))  # Fond transparent
+
+        # Redimensionnement de l'image de la tilemap
+        scaled_tilemap = pygame.transform.scale(
+            self.tilemap.image, (minimap_width, minimap_height)
+        )
+
+        # Affichage de l'image redimensionnée sur la minimap
+        self.image.blit(scaled_tilemap, (0, 0))
 
     def draw(self, screen):
         """

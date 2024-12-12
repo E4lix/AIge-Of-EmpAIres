@@ -21,33 +21,20 @@ class Game:
 
         # Centrer la map au début
         self.map_x = 0
-        self.map_y = 0
-
-        # Créer une minimap
-        self.minimap = Minimap.Minimap(self.tilemap, self.screen, scale_factor=0.75, position=(10, 10))
+        self.map_y = self.screen.get_height() // 2
 
     def draw_tilemap(self):
-        """Dessine la tilemap zoomée sur l'écran."""
+        """
+        Dessine la tilemap zoomée sur l'écran.
+        """
         zoomed_image = pygame.transform.scale(
             self.tilemap.image,
             (int(self.tilemap.image.get_width() * self.tilemap.zoom_factor),
              int(self.tilemap.image.get_height() * self.tilemap.zoom_factor))
         )
 
-        # Calcul du centre de la fenêtre
-        screen_center_x = self.screen.get_width() // 2
-        screen_center_y = self.screen.get_height() // 2
-
-        # Calcul du décalage nécessaire pour centrer la carte zoomée sur la fenêtre
-        zoomed_center_x = zoomed_image.get_width() // 2
-        zoomed_center_y = zoomed_image.get_height() // 2
-
-        # Appliquer le décalage pour centrer l'image zoomée
-        map_x = screen_center_x - zoomed_center_x + self.map_x
-        map_y = screen_center_y - zoomed_center_y + self.map_y
-
         # Dessiner la carte zoomée à la position calculée
-        self.screen.blit(zoomed_image, (map_x, map_y))
+        self.screen.blit(zoomed_image, (self.map_x, self.map_y))
 
     def draw_move_map(self):
         """
@@ -94,20 +81,21 @@ class Game:
                     elif event.key == pygame.K_m:
                         self.tilemap.set_zoom(self.tilemap.zoom_factor - 0.1)
                     elif event.key == pygame.K_z:
-                        self.map_y += 100
+                        self.map_y += 50
                     elif event.key == pygame.K_s:
-                        self.map_y -= 100
+                        self.map_y -= 50
                     elif event.key == pygame.K_d:
-                        self.map_x -= 100
+                        self.map_x -= 50
                     elif event.key == pygame.K_q:
-                        self.map_x += 100
+                        self.map_x += 50
 
             self.screen.fill((0, 0, 0))  # Fond noir
             self.draw_move_map()  # Affiche la map avec zoom
 
             # Met à jour et affiche la minimap
-            self.minimap = Minimap.Minimap(self.tilemap, self.screen, scale_factor=0.75, position=(10, 10))
-            self.minimap.draw(self.screen)  # Affiche la minimap
+            self.minimap = Minimap.Minimap(self.tilemap, self.screen, scale_factor=0.15, position=(10, 10))
+            self.minimap.update_minimap()
+            self.screen.blit(self.minimap.image, self.minimap.position)
             pygame.display.flip()
             self.clock.tick(30)
 
