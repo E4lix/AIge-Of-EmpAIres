@@ -30,8 +30,8 @@ class AIStrategy:
 class AI:
     def __init__(self, buildings, units):
         self.resources = {
-            'Wood': 100,
-            'Gold': 100,
+            'Wood': 350,
+            'Gold': 30,
             'Food': 50
         }#Ressource du début,  multiples choix dans le menu
         self.victoire = False
