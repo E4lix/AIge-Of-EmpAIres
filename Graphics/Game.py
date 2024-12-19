@@ -93,7 +93,7 @@ class Game:
             self.draw_move_map()  # Affiche la map avec zoom
 
             # Met à jour et affiche la minimap
-            self.minimap = Minimap.Minimap(self.tilemap, self.screen, scale_factor=0.15, position=(10, 10))
+            self.minimap = Minimap.Minimap(self.tilemap, self.screen, scale_factor=0.25, position=(10, 10))
             self.minimap.update_minimap()
             self.screen.blit(self.minimap.image, self.minimap.position)
             pygame.display.flip()

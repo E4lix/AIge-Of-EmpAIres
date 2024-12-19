@@ -21,8 +21,6 @@ current_strategy = StrategieNo1()
 
 last_update_time = 0  # Initialiser last_update_time avant la boucle principale du jeu
 
-
-
 # Constants
 SAVE_DIR = "saves"
 
@@ -126,7 +124,6 @@ def load_existing_game_graphics(screen, font):
                     game_loop_graphics(screen, strategies)
                     return
 
-
 def clear_input_buffer(stdscr):
     stdscr.nodelay(True)
     while True:
@@ -134,8 +131,6 @@ def clear_input_buffer(stdscr):
         if key == -1:
             break
     stdscr.nodelay(False)
-
-
 
 def signal_handler(sig, frame):
     print("[INFO] Exiting due to CTRL+C")
@@ -167,7 +162,6 @@ def switch_mode(new_mode):
         curses.wrapper(game_loop_curses, strategies)
         pygame.quit()
 
-
 def switch_strategy(ais, strategies, ai_to_switch, new_strategy):
     """
     Change dynamiquement la stratégie d'une IA.
@@ -181,8 +175,6 @@ def switch_strategy(ais, strategies, ai_to_switch, new_strategy):
     index = ais.index(ai_to_switch)  # Trouve l'index de l'IA
     strategies[index] = new_strategy  # Met à jour la stratégie de cette IA
     print(f"La stratégie de l'IA {index + 1} a été changée en {new_strategy.__class__.__name__}.")
-
-
 
 #-------------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------------
@@ -287,8 +279,6 @@ def escape_menu_curses(stdscr):
         elif key == 27:  # Touche Échap pour quitter le menu
             return  # Quitte le menu pour reprendre la partie
 
-
-
 def input_text_pygame(screen, font, prompt):
     input_text = ""
     running = True
@@ -314,7 +304,6 @@ def input_text_pygame(screen, font, prompt):
                     return None
                 elif 32 <= event.key <= 126:  # Caractères imprimables uniquement
                     input_text += event.unicode
-
 
 def escape_menu_graphics(screen):
     font = pygame.font.Font(None, 36)
@@ -359,7 +348,6 @@ def escape_menu_graphics(screen):
                     elif selected_option == 4:  # Quitter
                         sys.exit(0)
 
-
 def game_loop_curses(stdscr, strategies):
 
     global units, buildings, game_map, ai
@@ -394,7 +382,6 @@ def game_loop_curses(stdscr, strategies):
             escape_menu_curses(stdscr)
 
 def game_loop_graphics(screen, strategies):
-
     global units, buildings, game_map, ai
 
     # Initialiser pygame pour le mode graphique
@@ -416,11 +403,8 @@ def game_loop_graphics(screen, strategies):
         # Mise à jour du jeu à intervalles réguliers
         last_update_time = update_game(units, buildings, game_map, ais, strategies, delay=0.01, last_update_time=last_update_time)
 
-
         # Rendu de la carte et des unités
         render_map(screen, game_map, units, buildings, ais, view_x, view_y, max_width, max_height)
-
-
 
         # Gérer les événements Pygame (fermeture de fenêtre, bascule de mode, menu)
         for event in pygame.event.get():
@@ -438,8 +422,6 @@ def game_loop_graphics(screen, strategies):
         clock.tick(30)
 
     pygame.quit()
-
-
 
 def main_menu_curses():
     curses.wrapper(main_menu_curses_internal)
@@ -470,7 +452,6 @@ def main_menu_curses_internal(stdscr):
                 start_new_game_curses(stdscr)
             elif selected_option == 2:  # Quitter
                 sys.exit(0)
-
 
 def start_new_game_curses(stdscr):
     stdscr.clear()
@@ -573,8 +554,6 @@ def start_new_game_curses(stdscr):
     # Lancer la boucle de jeu en passant `strategies` en paramètre
     curses.wrapper(game_loop_curses, strategies)
 
-
-
 def main_menu_graphics():
     pygame.init()
     screen = pygame.display.set_mode((screen_width, screen_height))
@@ -606,7 +585,6 @@ def main_menu_graphics():
                         start_new_game_graphics(screen, font)
                     elif selected_option == 2:  # Quitter
                         sys.exit(0)
-
 
 def start_new_game_graphics(screen, font):
     input_fields = [
@@ -704,13 +682,9 @@ def start_new_game_graphics(screen, font):
     # Lancer la boucle graphique
     game_loop_graphics(screen, strategies)
 
-
-
 def render_text(screen, font, text, position, color=(255, 255, 255)):
     text_surface = font.render(text, True, color)
     screen.blit(text_surface, position)
-
-
 
 def init_game():
     global units, buildings, game_map, ai, ai
