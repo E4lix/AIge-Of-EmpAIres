@@ -1,0 +1,33 @@
+Dans cette version :
+
+    Implémentation des fonctions de Clara (combats + création d'un villageois).
+    Changement de stratégie pour une IA : actuellement, lorsqu'une IA ayant la stratégie agressive tue tous les ennemis (condition modifiable), elle passe automatiquement à la stratégie StrategieNO1 (stratégie économique, récolte pure). Voir switch_strategie dans update_game (on exploite l'interface de stratégie dans base_strategie.py).
+    Calcul du chemin optimisé grâce aux dictionnaires : on élimine toutes les valeurs nulles et on ne conserve que les informations utiles. vu dans le cours de Vincent Hugo 
+
+Rappel : par défaut, pour le moment, un joueur sur deux commence en StrategieNO1, l'autre en stratégie agressive.
+
+Restant à ce jour :
+
+Tâches / difficulté estimée :
+
+    Ajouter la maison (*).
+
+    Ajouter la tour et sa logique de combat (*).
+
+    Ajouter les trois bâtiments qui débloquent les unités de combat (*).
+
+    Ajouter le camp (point de ramassage) (* ou **).
+
+    Déplacer un villageois pour construire un bâtiment (*).
+
+    Délais pour la récolte/construction/exploitation des fermes (**).
+
+    Les ressources bois/or sont extraites progressivement (valeurs 100 et 800) et ne disparaissent pas après chaque extraction comme c'est le cas actuellement (*).
+
+    Minicarte (partie graphique) (*).
+
+    Ajouter les trois cartes par défaut dans le menu (*).
+
+    Ajouter les cheats (*).
+
+    Ajouter les logs dans une fenêtre lorsque le jeu est mis en pause (**).
