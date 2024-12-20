@@ -1,7 +1,4 @@
 import sys
-import pygame
-import os
-import numpy as np
 
 from Graphics.Tileset import *
 from Graphics.Tilemap import *
