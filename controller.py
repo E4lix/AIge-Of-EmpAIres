@@ -21,6 +21,8 @@ current_strategy = StrategieNo1()
 
 last_update_time = 0  # Initialiser last_update_time avant la boucle principale du jeu
 
+
+
 # Constants
 SAVE_DIR = "saves"
 
@@ -124,6 +126,7 @@ def load_existing_game_graphics(screen, font):
                     game_loop_graphics(screen, strategies)
                     return
 
+
 def clear_input_buffer(stdscr):
     stdscr.nodelay(True)
     while True:
@@ -131,6 +134,8 @@ def clear_input_buffer(stdscr):
         if key == -1:
             break
     stdscr.nodelay(False)
+
+
 
 def signal_handler(sig, frame):
     print("[INFO] Exiting due to CTRL+C")
@@ -162,6 +167,7 @@ def switch_mode(new_mode):
         curses.wrapper(game_loop_curses, strategies)
         pygame.quit()
 
+
 def switch_strategy(ais, strategies, ai_to_switch, new_strategy):
     """
     Change dynamiquement la stratégie d'une IA.
@@ -175,6 +181,8 @@ def switch_strategy(ais, strategies, ai_to_switch, new_strategy):
     index = ais.index(ai_to_switch)  # Trouve l'index de l'IA
     strategies[index] = new_strategy  # Met à jour la stratégie de cette IA
     print(f"La stratégie de l'IA {index + 1} a été changée en {new_strategy.__class__.__name__}.")
+
+
 
 #-------------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------------
@@ -279,6 +287,8 @@ def escape_menu_curses(stdscr):
         elif key == 27:  # Touche Échap pour quitter le menu
             return  # Quitte le menu pour reprendre la partie
 
+
+
 def input_text_pygame(screen, font, prompt):
     input_text = ""
     running = True
@@ -304,6 +314,7 @@ def input_text_pygame(screen, font, prompt):
                     return None
                 elif 32 <= event.key <= 126:  # Caractères imprimables uniquement
                     input_text += event.unicode
+
 
 def escape_menu_graphics(screen):
     font = pygame.font.Font(None, 36)
@@ -333,7 +344,7 @@ def escape_menu_graphics(screen):
                     if selected_option == 0:  # Sauvegarder
                         save_name = input_text_pygame(screen, font, "Nom de la sauvegarde :")
                         if save_name:
-                            save_game_state(units, buildings, game_map, ai, os.path.join(SAVE_DIR, f"{save_name}.pkl"))
+                            save_game_state(units, buildings, game_map, ais, os.path.join(SAVE_DIR, f"{save_name}.pkl"))
                     elif selected_option == 1:  # Charger
                         load_existing_game_graphics(screen, font)
                         return  # Après chargement, lancez la boucle de jeu
@@ -347,6 +358,7 @@ def escape_menu_graphics(screen):
 
                     elif selected_option == 4:  # Quitter
                         sys.exit(0)
+
 
 def game_loop_curses(stdscr, strategies):
 
@@ -382,6 +394,7 @@ def game_loop_curses(stdscr, strategies):
             escape_menu_curses(stdscr)
 
 def game_loop_graphics(screen, strategies):
+
     global units, buildings, game_map, ai
 
     # Initialiser pygame pour le mode graphique
@@ -401,10 +414,13 @@ def game_loop_graphics(screen, strategies):
         view_x, view_y = handle_input_pygame(view_x, view_y, max_width, max_height, game_map)
         
         # Mise à jour du jeu à intervalles réguliers
-        last_update_time = update_game(units, buildings, game_map, ais, strategies, delay=0.01, last_update_time=last_update_time)
+        last_update_time = update_game(units, buildings, game_map, ais, strategies, delay=0.05, last_update_time=last_update_time)
+
 
         # Rendu de la carte et des unités
         render_map(screen, game_map, units, buildings, ais, view_x, view_y, max_width, max_height)
+
+
 
         # Gérer les événements Pygame (fermeture de fenêtre, bascule de mode, menu)
         for event in pygame.event.get():
@@ -422,6 +438,8 @@ def game_loop_graphics(screen, strategies):
         clock.tick(30)
 
     pygame.quit()
+
+
 
 def main_menu_curses():
     curses.wrapper(main_menu_curses_internal)
@@ -452,6 +470,7 @@ def main_menu_curses_internal(stdscr):
                 start_new_game_curses(stdscr)
             elif selected_option == 2:  # Quitter
                 sys.exit(0)
+
 
 def start_new_game_curses(stdscr):
     stdscr.clear()
@@ -495,6 +514,11 @@ def start_new_game_curses(stdscr):
     # Récupération des valeurs
     try:
         map_size = int(input_values[0])
+        if map_size < 120:  # Taille minimale imposée
+            stdscr.addstr(len(input_fields) + 2, 0, "Erreur : La taille minimale de la carte est 120x120. Valeur forcée à 120.")
+            stdscr.refresh()
+            time.sleep(2)
+            map_size = 120
         num_players = int(input_values[1])
         wood_clusters = int(input_values[2])
         gold_clusters = int(input_values[3])
@@ -554,6 +578,8 @@ def start_new_game_curses(stdscr):
     # Lancer la boucle de jeu en passant `strategies` en paramètre
     curses.wrapper(game_loop_curses, strategies)
 
+
+
 def main_menu_graphics():
     pygame.init()
     screen = pygame.display.set_mode((screen_width, screen_height))
@@ -585,6 +611,7 @@ def main_menu_graphics():
                         start_new_game_graphics(screen, font)
                     elif selected_option == 2:  # Quitter
                         sys.exit(0)
+
 
 def start_new_game_graphics(screen, font):
     input_fields = [
@@ -620,9 +647,11 @@ def start_new_game_graphics(screen, font):
 
         input_values.append(input_text)
 
-    # Récupération des valeurs
+    # Validation des entrées
     try:
         map_size = int(input_values[0])
+        if map_size < 120:  # Taille minimale imposée
+            map_size = 120
         num_players = int(input_values[1])
         wood_clusters = int(input_values[2])
         gold_clusters = int(input_values[3])
@@ -649,7 +678,7 @@ def start_new_game_graphics(screen, font):
         ais.append(ai)
 
         town_center = Building('Town Center', town_center_x, town_center_y, owner=ai)
-        ai.town_center = town_center  # Ajoutez cette ligne pour associer explicitement le Town Center à l'IA
+        ai.town_center = town_center  # Associe explicitement le Town Center à l'IA
 
         game_map.place_building(town_center, town_center_x, town_center_y, buildings)
         buildings.append(town_center)
@@ -664,17 +693,13 @@ def start_new_game_graphics(screen, font):
     # Configuration des ennemis pour chaque IA
     for ai in ais:
         ai.set_enemies([a for a in ais if a != ai])
-        for building in ai.buildings:
-            assert building.owner == ai, f"Erreur : {building.building_type} à ({building.x}, {building.y}) n'appartient pas à {ai}."
 
     # Initialisation des stratégies
     strategies = initialize_strategies(ais)
 
     # Debug : afficher les bâtiments de chaque IA
     for i, ai in enumerate(ais):
-        assert ai.town_center.owner == ai, f"Erreur : Town Center de l'IA {i + 1} n'appartient pas à l'IA."
-        print(f"IA {i + 1} possède le Town Center à ({ai.town_center.x}, {ai.town_center.y}).")
-
+        print(f"IA {i + 1} possède les bâtiments : {[b.building_type for b in ai.buildings]} avec Town Center à ({ai.town_center.x}, {ai.town_center.y})")
 
     # Debug : vérifier les tuiles de la carte
     game_map.debug_tile_dict()
@@ -682,9 +707,14 @@ def start_new_game_graphics(screen, font):
     # Lancer la boucle graphique
     game_loop_graphics(screen, strategies)
 
+
+
+
 def render_text(screen, font, text, position, color=(255, 255, 255)):
     text_surface = font.render(text, True, color)
     screen.blit(text_surface, position)
+
+
 
 def init_game():
     global units, buildings, game_map, ai, ai
@@ -692,7 +722,7 @@ def init_game():
     if loaded_units and loaded_buildings and loaded_map and loaded_ai:
         units, buildings, game_map, ai = loaded_units, loaded_buildings, loaded_map, loaded_ai
     else:
-        game_map = Map(120, 120)
+        game_map = Map(max(120, 120), max(120, 120))
         game_map.generate_forest_clusters(num_clusters=10, cluster_size=40)
         game_map.generate_gold_clusters(num_clusters=4)
         town_center = Building('Town Center', 10, 10)

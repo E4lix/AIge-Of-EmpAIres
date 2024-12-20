@@ -20,8 +20,6 @@ class Map:
         self.tile_dict_buildings = {}  # Indexation des tuiles avec bâtiments
 
 
-
-
     def debug_tile_dict(self):
         """Affiche toutes les tuiles enregistrées dans les dictionnaires de ressources et de bâtiments."""
         print("Tuiles contenant des ressources :")
@@ -44,21 +42,21 @@ class Map:
 
 
     def update_tile_index(self, x, y):
-        """Mise à jour des index pour les tuiles contenant des ressources ou des bâtiments."""
         key = f"{x},{y}"
         tile = self.grid[y][x]
 
-        # Mise à jour des ressources
+        # Met à jour les ressources
         if tile.resource:
             self.tile_dict_resources[key] = tile
         elif key in self.tile_dict_resources:
             del self.tile_dict_resources[key]
 
-        # Mise à jour des bâtiments
+        # Met à jour les bâtiments
         if tile.building:
             self.tile_dict_buildings[key] = tile
         elif key in self.tile_dict_buildings:
             del self.tile_dict_buildings[key]
+
 
 
 
@@ -274,18 +272,37 @@ class Unit:
     #LOGIQUE RESSOURCES
 
     def gather_resource(self, game_map):
-        """ Récolte une ressource si le villageois est sur une case contenant une ressource """
+        """Récolte une ressource si le villageois est sur une case contenant une ressource."""
         tile = game_map.grid[self.y][self.x]
         if tile.resource:
+            # Définir les capacités maximales pour les types de ressources
+            resource_capacities = {
+                'Wood': 100,
+                'Gold': 800
+            }
+
             resource_type = tile.resource
-            amount = min(20, self.max_capacity - self.resource_collected)
-            self.resource_collected += amount  # Récolte 20 unités de ressource (ou moins si la capacité max est atteinte)
-            print(f"{self.unit_type} récolte {amount} unités de {resource_type} à ({self.x}, {self.y}).")
-            self.current_resource = resource_type  # Stocke le type de ressource
-            if self.resource_collected >= self.max_capacity:
-                print(f"{self.unit_type} a atteint sa capacité maximale en {resource_type}.")
-                self.returning_to_town_center = True  # Le villageois retourne au Town Center
-            tile.resource = None  # La ressource est épuisée sur cette case
+            max_resource = resource_capacities.get(resource_type, 0)  # Par défaut 0 si type inconnu
+
+            # Vérifier si la ressource a encore une capacité disponible
+            if not hasattr(tile, 'resource_capacity'):
+                tile.resource_capacity = max_resource  # Initialiser la capacité si elle n'existe pas
+
+            if tile.resource_capacity > 0:
+                amount = min(20, self.max_capacity - self.resource_collected, tile.resource_capacity)
+                self.resource_collected += amount
+                tile.resource_capacity -= amount  # Réduire la capacité de la ressource
+                print(f"{self.unit_type} récolte {amount} unités de {resource_type} à ({self.x}, {self.y}).")
+                self.current_resource = resource_type  # Stocke le type de ressource
+
+                if self.resource_collected >= self.max_capacity:
+                    print(f"{self.unit_type} a atteint sa capacité maximale en {resource_type}.")
+                    self.returning_to_town_center = True  # Le villageois retourne au Town Center
+
+                if tile.resource_capacity <= 0:
+                    print(f"{resource_type} épuisé à ({self.x}, {self.y}).")
+                    tile.resource = None  # La ressource est épuisée
+
 
     def gather_food_from_farm(self):
         """Récolte la nourriture de la ferme en continu jusqu'à épuisement."""
@@ -334,12 +351,7 @@ class Unit:
                 self.resource_collected = 0
                 self.returning_to_town_center = False
                 self.current_resource = None
-            else:
-                print(f"{self.unit_type} retourne au Town Center pour déposer les ressources.")
-                path = self.find_nearest_town_center(self.ai.game_map, self.ai.buildings)
-                if path:
-                    next_step = path[0]
-                    self.move(next_step[0], next_step[1])
+
 
 
 
@@ -360,8 +372,9 @@ class Unit:
             default=None
         )
         if closest_farm:
-            return [(closest_farm.x, closest_farm.y)]
+            return self.find_path(game_map, (self.x, self.y), 'Farm', target_position=(closest_farm.x, closest_farm.y))
         return None
+
 
 
 

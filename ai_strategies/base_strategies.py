@@ -4,8 +4,8 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from model import Building, Unit, Tile, Map
 
-
-
+#interface strate
+ 
 class AIStrategy:
     def execute(self, units, buildings, game_map, ai):
         """
@@ -22,15 +22,17 @@ class AIStrategy:
 
 #-------------------------------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------------------------------
-#---------Classe pour les comportements communs à chaque stratégie IA
+#---------Classe  "joueur"
 #-------------------------------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------------------------------
+
+
 class AI:
     def __init__(self, buildings, units):
         self.resources = {
-            'Wood': 1000,
-            'Gold': 1000,
-            'Food': 500
+            'Wood': 350,
+            'Gold': 30,
+            'Food': 50
         }#Ressource du début,  multiples choix dans le menu
         self.victoire = False
         self.buildings = buildings

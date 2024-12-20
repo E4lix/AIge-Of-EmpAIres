@@ -11,10 +11,12 @@ def init_colors():
     curses.init_pair(6, curses.COLOR_MAGENTA, curses.COLOR_BLACK)  # Magenta pour les fermes
     curses.init_pair(7, curses.COLOR_BLUE, curses.COLOR_BLACK)  # Bleu pour les casernes
     # Couleurs spécifiques pour chaque joueur
-    curses.init_pair(8, curses.COLOR_BLUE, curses.COLOR_BLACK)   # Joueur 1.
+    curses.init_pair(8, curses.COLOR_BLUE, curses.COLOR_BLACK)   # Joueur 1
     curses.init_pair(9, curses.COLOR_RED, curses.COLOR_BLACK)    # Joueur 2
     curses.init_pair(10, curses.COLOR_YELLOW, curses.COLOR_BLACK)  # Joueur 3
     curses.init_pair(11, curses.COLOR_MAGENTA, curses.COLOR_BLACK)  # Joueur 4
+
+
 
 def display_with_curses(stdscr, game_map, units, buildings, ais, view_x, view_y, max_height, max_width):
     stdscr.clear()  # Efface l'écran pour éviter les résidus
@@ -69,6 +71,10 @@ def display_with_curses(stdscr, game_map, units, buildings, ais, view_x, view_y,
         info_y += 1
 
     stdscr.refresh()
+
+
+
+
 
 def handle_input(stdscr, view_x, view_y, max_height, max_width, game_map):
     """Gère les touches pour le scrolling ZQSD et les touches fléchées."""
