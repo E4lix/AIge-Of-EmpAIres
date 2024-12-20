@@ -46,9 +46,9 @@ def initialize_graphics():
         images['grass'] = pygame.transform.scale((tileset_gen.tiles[np.random.choice(floor_tile)]).convert_alpha(), (TILE_WIDTH, TILE_HEIGHT))
         images['tree'] = pygame.transform.scale((tileset_arbre.tiles[np.random.choice(tree_tile)]).convert_alpha(), (TILE_WIDTH * 1.5, TILE_HEIGHT * 1.5))  # Adjusted size for better fit
         images['gold'] = pygame.transform.scale((tileset_gen.tiles[np.random.choice(rock_tile)]).convert_alpha(), (TILE_WIDTH, TILE_HEIGHT))
-        images['town_center'] = pygame.transform.scale(pygame.image.load("assets/Fantasy_Tileset/Tower_Blue.png").convert_alpha(), (TILE_WIDTH, TILE_HEIGHT * 2))  # Adjusted size to match scale
+        images['town_center'] = pygame.transform.scale(pygame.image.load("assets/Fantasy_Tileset/Castle_Blue.png").convert_alpha(), (TILE_WIDTH * 2, TILE_HEIGHT * 2))  # Adjusted size to match scale
         images['villager'] = pygame.transform.scale((tileset_villageois.tiles[0]).convert_alpha(), (TILE_WIDTH, TILE_HEIGHT))  # Adjusted size to be smaller
-        images['farm'] = pygame.transform.scale((tileset_gen.tiles[np.random.choice(farm_tile)]).convert_alpha(), (TILE_WIDTH, TILE_HEIGHT))  # Nouvelle ligne pour la ferme
+        images['farm'] = pygame.transform.scale((tileset_gen.tiles[np.random.choice(farm_tile)]).convert_alpha(), (TILE_WIDTH * 1.25, TILE_HEIGHT * 1.25))  # Nouvelle ligne pour la ferme
         images['soldier'] = pygame.transform.scale((tileset_warrior.tiles[0]).convert_alpha(), (TILE_WIDTH * 1.5, TILE_HEIGHT * 1.5))
         images['archer'] = pygame.transform.scale((tileset_warrior.tiles[0]).convert_alpha(), (TILE_WIDTH * 1.5, TILE_HEIGHT * 1.5))
         images['cavalier'] = pygame.transform.scale(pygame.image.load("assets/Fantasy_Tileset/Knight_idle.png").convert_alpha(), (TILE_WIDTH * 1.3, TILE_HEIGHT * 1.3))
