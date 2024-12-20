@@ -30,7 +30,17 @@ def display_with_curses(stdscr, game_map, units, buildings, ais, view_x, view_y,
                 unit = unit_positions[(x, y)]
                 player_idx = ais.index(unit.ai)  # Trouve l'indice du joueur
                 color_pair = 8 + player_idx  # Associe la couleur en fonction du joueur
-                stdscr.addch(y - view_y, x - view_x, unit.unit_type[0], curses.color_pair(color_pair))
+
+                # Associe une lettre à chaque type d'unité
+                unit_display_map = {
+                    'Villager': 'V',
+                    'Soldier': 'S',
+                    'Archer': 'A',
+                    'Cavalier': 'C'
+                }
+                unit_char = unit_display_map.get(unit.unit_type, '?')  # Par défaut, '?' pour les types inconnus
+                stdscr.addch(y - view_y, x - view_x, unit_char, curses.color_pair(color_pair))
+
             elif tile.building:
                 owner_ai = next((ai for ai in ais if tile.building in ai.buildings), None)
                 if owner_ai:
