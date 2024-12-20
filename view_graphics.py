@@ -65,7 +65,6 @@ def render_map(screen, game_map, units, buildings, ais, view_x, view_y, max_widt
         elif building.building_type == 'Farm':
             screen.blit(images['farm'], (screen_x, screen_y - TILE_HEIGHT))  # Décalage pour la ferme
 
-
     # Render units
     for unit in units:
         screen_x = (unit.x - unit.y) * (TILE_WIDTH // 2) + (screen_width // 2) - TILE_WIDTH // 2 - (view_x - view_y) * (TILE_WIDTH // 2)
@@ -96,8 +95,6 @@ def render_map(screen, game_map, units, buildings, ais, view_x, view_y, max_widt
     print(buildings)
     # Update the display
     pygame.display.flip()
-
-
 
 # Fonction de gestion des entrées utilisateur
 def handle_input_pygame(view_x, view_y, max_width, max_height, game_map):
