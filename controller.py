@@ -9,10 +9,7 @@ from view import display_with_curses, handle_input, init_colors
 from view_graphics import handle_input_pygame, render_map, screen_width, screen_height, TILE_WIDTH, TILE_HEIGHT, initialize_graphics
 from game_utils import save_game_state, load_game_state
 
-
 from ai_strategies.base_strategies import AI
-
-
 
 from ai_strategies.strategie_aggressive import StrategieAggressive
 from ai_strategies.strategie_No1_dev_ai import StrategieNo1 
@@ -20,8 +17,6 @@ from ai_strategies.strategie_No1_dev_ai import StrategieNo1
 current_strategy = StrategieNo1()
 
 last_update_time = 0  # Initialiser last_update_time avant la boucle principale du jeu
-
-
 
 # Constants
 SAVE_DIR = "saves"
@@ -41,8 +36,6 @@ def initialize_strategies(ais):
             strategies.append(StrategieAggressive())
     return strategies
 
-
-
 def list_saves():
     saves = [f for f in os.listdir(SAVE_DIR) if f.endswith(".pkl")]
     return saves
@@ -54,8 +47,6 @@ def load_existing_game(filename):
         units, buildings, game_map, ais = loaded_units, loaded_buildings, loaded_map, loaded_ais
     else:
         print("[ERROR] Chargement échoué. Le fichier est corrompu ou n'existe pas.")
-
-
 
 def load_existing_game_curses(stdscr):
     saves = list_saves()
@@ -91,7 +82,6 @@ def load_existing_game_curses(stdscr):
             # Après chargement, lancez directement la partie avec curses
             curses.wrapper(game_loop_curses, strategies)
             return  # Quitte la fonction après avoir lancé la boucle de jeu
-
 
 def load_existing_game_graphics(screen, font):
     saves = list_saves()
